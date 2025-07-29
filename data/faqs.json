@@ -1,0 +1,22 @@
+[
+  {
+    "question": "¿Cuál es su horario de atención?",
+    "answer": "Nuestro horario de atención es de lunes a viernes de 9 AM a 6 PM, y sábados de 10 AM a 2 PM."
+  },
+  {
+    "question": "¿Dónde están ubicados?",
+    "answer": "Estamos ubicados en la calle Ficticia #123, en el centro de la ciudad."
+  },
+  {
+    "question": "¿Qué métodos de pago aceptan?",
+    "answer": "Aceptamos tarjetas de crédito (Visa, MasterCard, American Express), PayPal y transferencias bancarias."
+  },
+  {
+    "question": "¿Ofrecen envíos internacionales?",
+    "answer": "Sí, realizamos envíos internacionales a la mayoría de los países. Los costos y tiempos varían según el destino."
+  },
+  {
+    "question": "¿Cómo puedo contactar al servicio al cliente?",
+    "answer": "Puede contactarnos a través de nuestro correo electrónico info@ecommerce.com o llamando al +123 456 7890."
+  }
+]
