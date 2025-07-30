@@ -30,6 +30,7 @@ class Settings(BaseSettings):
   DATA_DIR: Path = Path(__file__).parent.parent.parent / "data"
   DATA_FAQS_DIR: Path = DATA_DIR / "faqs"
 
+  # --- Splitter Configuration ---
   SMALL_CHUNK_SIZE: int = 150
   SMALL_CHUNK_OVERLAP: int = 20
   WINDOW_SIZE: int = 1000
@@ -37,8 +38,11 @@ class Settings(BaseSettings):
   
   # --- Telegram Configuration ---
   TELEGRAM_BOT_TOKEN: str
-  
   WEBHOOK_URL: str
   
+  # --- Langfuse Configuration ---
+  LANGFUSE_SECRET_KEY: str
+  LANGFUSE_PUBLIC_KEY: str
+  LANGFUSE_HOST: str
 
 settings = Settings()

@@ -3,10 +3,10 @@ class Prompt:
     self.name = name
     self.prompt = prompt
     
-    def __str__(self):
+    def __str__(self) -> str:
       return self.prompt
     
-    def __repr__(self):
+    def __repr__(self) -> str:
       return self.__str__()
 
 __SYSTEM_PROMPT = """

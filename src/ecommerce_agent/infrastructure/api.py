@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
 
+
 from ecommerce_agent.application.services.conversation_service.generate_response import generate_response, get_streaming_response
 from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_transaction, db_client
 from ecommerce_agent.infrastructure.messaging.telegram.telegram_bot_handler import bot_instance, telegram_bot_main
@@ -14,54 +15,68 @@ from ecommerce_agent.config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Context manager for managing the lifespan of the FastAPI application.
+    Initializes database connections, creates necessary tables and functions for document storage,
+    and sets up the Telegram bot webhook upon startup. Ensures proper shutdown procedures.
+
+    Args:
+        app (FastAPI): The FastAPI application instance.
+
+    Yields:
+        None: The execution context within the lifespan.
+
+    Raises:
+        Exception: If an error occurs during database initialization.
+    """
     logging.info("Initializing FastAPI application...")
     try:
       with db_transaction() as conn:
-          cursor = conn.cursor()
-          cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
-          cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;") 
-          
-          cursor.execute("""
-              CREATE TABLE IF NOT EXISTS documents (
-                  id SERIAL PRIMARY KEY,
-                  content TEXT NOT NULL,
-                  embedding VECTOR(1536) NOT NULL,
-                  content_tsv TSVECTOR,
-                  window_content TEXT,
-                  source TEXT
-              );
-          """)
-          
-          cursor.execute("""
-              CREATE INDEX IF NOT EXISTS documents_content_tsv_idx
-              ON documents USING GIN (content_tsv);
-          """)
+        cursor = conn.cursor()
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;") 
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS documents (
+                id SERIAL PRIMARY KEY,
+                content TEXT NOT NULL,
+                embedding VECTOR(1536) NOT NULL,
+                content_tsv TSVECTOR,
+                window_content TEXT,
+                source TEXT
+            );
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS documents_content_tsv_idx
+            ON documents USING GIN (content_tsv);
+        """)
 
-          cursor.execute("""
-              CREATE OR REPLACE FUNCTION update_documents_content_tsv() RETURNS TRIGGER AS $$
-              BEGIN
-                  NEW.content_tsv := to_tsvector('spanish', NEW.content);
-                  RETURN NEW;
-              END;
-              $$ LANGUAGE plpgsql;
-          """)
+        cursor.execute("""
+            CREATE OR REPLACE FUNCTION update_documents_content_tsv() RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.content_tsv := to_tsvector('spanish', NEW.content);
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+        """)
 
-          cursor.execute("""
-              DROP TRIGGER IF EXISTS trg_documents_content_tsv ON documents;
-          """)
-          cursor.execute("""
-              CREATE TRIGGER trg_documents_content_tsv
-              BEFORE INSERT OR UPDATE ON documents
-              FOR EACH ROW EXECUTE FUNCTION update_documents_content_tsv();
-          """)
-          
-          cursor.execute("""
-              UPDATE documents SET content_tsv = to_tsvector('spanish', content) WHERE content_tsv IS NULL;
-          """)
+        cursor.execute("""
+            DROP TRIGGER IF EXISTS trg_documents_content_tsv ON documents;
+        """)
+        cursor.execute("""
+            CREATE TRIGGER trg_documents_content_tsv
+            BEFORE INSERT OR UPDATE ON documents
+            FOR EACH ROW EXECUTE FUNCTION update_documents_content_tsv();
+        """)
+        
+        cursor.execute("""
+            UPDATE documents SET content_tsv = to_tsvector('spanish', content) WHERE content_tsv IS NULL;
+        """)
 
-          conn.commit()
-          logging.info("Database tables and FTS configurations verified/created successfully for the agent tool.")
-          asyncio.create_task(telegram_bot_main(app))
+        conn.commit()
+        logging.info("Database tables and FTS configurations verified/created successfully for the agent tool.")
+        asyncio.create_task(telegram_bot_main(app))
     except Exception as e:
         logging.error(f"Error initializing database at agent startup: {e}")
         raise
@@ -85,6 +100,18 @@ class ChatMessage(BaseModel):
     
 @app.post("/chat")
 async def chat(chat_message: ChatMessage):
+  """
+  Handles incoming chat messages and generates a response using the conversation agent.
+
+  Args:
+    chat_message (ChatMessage): The incoming chat message containing the user's message string.
+
+  Returns:
+    dict: A dictionary containing the agent's response.
+
+  Raises:
+    HTTPException: If an error occurs during response generation.
+  """
   try:
       logging.info(f"Received chat message: {chat_message.message}")
       response, _ = await generate_response(chat_message.message)
@@ -93,28 +120,35 @@ async def chat(chat_message: ChatMessage):
   except Exception as e:
       raise HTTPException(status_code=500, detail=str(e))
     
-# Webhook de Telegram (manejará las solicitudes entrantes del bot)
-# Este endpoint será invocado por Telegram cuando haya un nuevo mensaje.
+# Telegram Webhook (will handle incoming bot requests)
+# This endpoint will be invoked by Telegram when a new message arrives.
 @app.post(f"/telegram_webhook/{settings.TELEGRAM_BOT_TOKEN}")
 async def telegram_webhook(request: Request):
+  """
+  Handles incoming Telegram webhook updates.
+
+  Processes text messages from Telegram, generates a response using the conversation agent,
+  and sends the response back to the user.
+
+  Args:
+    request (Request): The incoming FastAPI request object containing the Telegram update.
+
+  Returns:
+    dict: A status dictionary indicating whether the update was processed or ignored.
+  """
   update = await request.json()
   print(f"Received Telegram update: {update}")
-  # La lógica de procesamiento real se delegará al bot_handler
-  # Para el MVP, solo procesaremos mensajes de texto simples aquí.
   if "message" in update and "text" in update["message"]:
       text = update["message"]["text"]
       chat_id = update["message"]["chat"]["id"]
       user_id = update["message"]["from"]["id"]
       
-      # Simular historial de chat vacío para el MVP.
-      # En un sistema real, aquí se recuperaría el historial de una memoria.
-      # chat_history_for_agent = []
 
       logging.info("Generating response...")  
       agent_response_obj, _ = await generate_response(text)
       agent_response_text = str(agent_response_obj)
       logging.info(f"Agent response text: {agent_response_text}")
-      # Enviar la respuesta de vuelta a Telegram
+      # Send the response back to Telegram
       await bot_instance.send_message(chat_id=chat_id, text=agent_response_text)
       logging.info("Response sent to Telegram")
       return {"status": "ok"}
