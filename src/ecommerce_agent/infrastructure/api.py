@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
 
+from ecommerce_agent.infrastructure.logger import setup_logging
 
 from ecommerce_agent.application.services.conversation_service.generate_response import generate_response, get_streaming_response
 from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_transaction, db_client
@@ -29,6 +30,7 @@ async def lifespan(app: FastAPI):
     Raises:
         Exception: If an error occurs during database initialization.
     """
+    setup_logging()
     logging.info("Initializing FastAPI application...")
     try:
       with db_transaction() as conn:
@@ -40,11 +42,11 @@ async def lifespan(app: FastAPI):
             CREATE TABLE IF NOT EXISTS documents (
                 id SERIAL PRIMARY KEY,
                 content TEXT NOT NULL,
-                embedding VECTOR(1536) NOT NULL,
+                embedding VECTOR(%s) NOT NULL,
                 window_content TEXT,
                 source TEXT
             );
-        """)
+        """, (settings.EMBEDDING_DIMENSION,))
 
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS documents_search_idx
@@ -91,7 +93,7 @@ async def chat(chat_message: ChatMessage):
     HTTPException: If an error occurs during response generation.
   """
   try:
-      logging.info(f"Received chat message: {chat_message.message}")
+      logging.info(f"Chat message received: {chat_message.message}")
       response, _ = await generate_response(chat_message.message)
       logging.info(f"Response generated: {response}")
       return {"response": response}
@@ -115,14 +117,14 @@ async def telegram_webhook(request: Request):
     dict: A status dictionary indicating whether the update was processed or ignored.
   """
   update = await request.json()
-  logging.info(f"Received Telegram update: {update}")
+  logging.info(f"Telegram update received: {update}")
   if "message" in update and "text" in update["message"]:
       text = update["message"]["text"]
       chat_id = update["message"]["chat"]["id"]
       user_id = update["message"]["from"]["id"]
       
 
-      logging.info("Generating response...")  
+      logging.info("Generating response...")
       agent_response_obj, _ = await generate_response(text)
       agent_response_text = str(agent_response_obj)
       logging.info(f"Agent response text: {agent_response_text}")

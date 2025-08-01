@@ -3,7 +3,7 @@ from langchain_community.document_loaders import DirectoryLoader
 from langchain_community.document_loaders import TextLoader
 from langchain_community.document_loaders import PyPDFLoader
 import logging
-from langchain.document_loaders import Document
+from langchain_core.documents import Document
 
 class LoaderService:
   """

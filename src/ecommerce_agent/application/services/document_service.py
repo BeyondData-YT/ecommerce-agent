@@ -3,8 +3,6 @@ from ecommerce_agent.domain.document import Document
 from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_client
 import logging
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 class DocumentService:
     """
     Service class for interacting with the document storage in the PostgreSQL database.
