@@ -2,7 +2,7 @@
 services:
   # Tu servicio de base de datos PostgreSQL con pgvector
   db:
-    image: pgvector/pgvector:pg17 # Prebuilt Postgres image with pgvector
+    image: paradedb/paradedb:latest
     container_name: postgres-pgvector
     ports:
       - "5435:5432" # Expuesto en el puerto 5435 del host

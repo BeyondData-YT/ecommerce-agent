@@ -1,9 +1,8 @@
 from telegram import Update, Bot
 from telegram.ext import Application, MessageHandler, filters, ContextTypes, CommandHandler
 import asyncio
-# Asegúrate de que esta importación sea correcta según tu estructura de carpetas
 from ecommerce_agent.config import settings 
-from fastapi import FastAPI # Importar FastAPI para el webhook, aunque no se usa en el modo polling
+from fastapi import FastAPI
 import logging
 
 # Initializes the Telegram bot

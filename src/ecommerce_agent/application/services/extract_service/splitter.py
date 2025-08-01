@@ -101,19 +101,16 @@ class SplitterService:
         """
         all_small_chunks = []
         full_text = self._get_document_text(documents)
-        logging.info("Splitting documents")
+        logging.info(f"Starting document splitting for {len(documents)} documents.")
         # 1. Generate "small chunks"
         small_chunks = self.small_chunk_splitter.create_documents([full_text], metadatas=[{"source": doc.metadata["source"]} for doc in documents])
-        logging.info("Small chunks generated")
+        logging.info(f"Generated {len(small_chunks)} small chunks.")
         # 2. For each small chunk, calculate its context window
         for _, small_chunk in enumerate(small_chunks):
             # Get the content of the small chunk
             small_chunk_content = small_chunk.page_content
             
             # Find the index of the small chunk in the full text
-            # This can be slightly imprecise with overlaps and complex separators.
-            # A more robust way would be to handle indexes directly from the splitter.
-            # For simplicity, we will look for the first occurrence here.
             start_index = full_text.find(small_chunk_content)
             
             if start_index != -1:
@@ -139,7 +136,7 @@ class SplitterService:
             else:
                 # If the small chunk is not found in the full text, add it as is
                 # This can happen if there are transformations in the content
+                logging.warning(f"Small chunk content not found in full text. Adding as is. Chunk: {small_chunk.page_content[:50]}...")
                 all_small_chunks.append(self.create_document(small_chunk))
-        logging.info("Small chunks split")
-        logging.info(f"Split {len(documents)} documents into {len(all_small_chunks)} small chunks with window context.")
+        logging.info(f"Document splitting completed. Total small chunks with window context: {len(all_small_chunks)}.")
         return all_small_chunks

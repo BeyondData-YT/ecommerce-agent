@@ -26,9 +26,9 @@ class DocumentRetrieverService:
     Returns:
       list[Document]: A list of Document objects semantically similar to the query.
     """
-    logging.info("Generating query embedding")
+    logging.info(f"Generating embedding for semantic search query: '{query}'.")
     query_embedding = self.embeddings_service.embed_query(query)
-    logging.info("Retrieving similar documents")
+    logging.info(f"Retrieving {top_k} similar documents semantically.")
     return self.document_service.retrieve_similar_documents(query_embedding, top_k)
   
   def retrieve_text_search_documents(self, query: str, top_k: int = 5) -> list[Document]:
@@ -42,7 +42,8 @@ class DocumentRetrieverService:
     Returns:
       list[Document]: A list of Document objects text-similar to the query.
     """
-    logging.info("Retrieving text search documents")
+    logging.info(f"Initiating text search for query: '{query}'.")
+    logging.info(f"Retrieving {top_k} documents via text search.")
     return self.document_service.retrieve_text_search_documents(query, top_k)
   
   def retrieve_hybrid_documents(self, query: str, top_k: int = 5) -> list[Document]:
@@ -56,7 +57,7 @@ class DocumentRetrieverService:
     Returns:
       list[Document]: A list of Document objects from the hybrid search.
     """
-    logging.info("Generating query embedding")
+    logging.info(f"Generating embedding for hybrid search query: '{query}'.")
     query_embedding = self.embeddings_service.embed_query(query)
-    logging.info("Retrieving hybrid documents")
+    logging.info(f"Retrieving {top_k} hybrid documents.")
     return self.document_service.retrieve_hybrid_documents(query_embedding, query, top_k)

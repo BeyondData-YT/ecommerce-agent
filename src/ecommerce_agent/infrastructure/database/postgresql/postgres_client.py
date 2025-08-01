@@ -24,6 +24,7 @@ class PostgresClient:
     Returns:
       dict: A dictionary containing connection parameters.
     """
+    logging.info("Loading PostgreSQL connection parameters.")
     return {
       "host": settings.POSTGRES_HOST,
       "port": settings.POSTGRES_PORT,
@@ -46,8 +47,9 @@ class PostgresClient:
       try:
         self._connection = psycopg2.connect(**self.conn_params)
         self._connection.autocommit = False # Control transactions manually
-        logging.info("Connected to the database")
+        logging.info("Successfully connected to the PostgreSQL database.")
       except psycopg2.Error as e:
+        logging.error(f"Error connecting to the database: {e}")
         raise ConnectionError(f"Error connecting to the database: {e}")
     return self._connection
   
@@ -58,7 +60,7 @@ class PostgresClient:
     if self._connection and not self._connection.closed:
       self._connection.close()
       self._connection = None
-      logging.info("Disconnected from the database")
+      logging.info("Disconnected from the PostgreSQL database.")
   
   def execute_query(self, query: str, params: Optional[tuple] = None, fetch_one: bool = False, fetch_all: bool = False) -> Optional[Union[dict, list[dict]]]:
     """
@@ -80,13 +82,16 @@ class PostgresClient:
     cursor = None
     try:
       cursor = connection.cursor(cursor_factory=RealDictCursor)
+      logging.debug(f"Executing query: {query} with parameters: {params}")
       cursor.execute(query, params)
-      logging.info("Query executed")
+      logging.info("Query executed successfully.")
       
       if fetch_one:
         result = cursor.fetchone()
+        logging.debug(f"Fetched one result: {result}")
       elif fetch_all:
         result = cursor.fetchall()
+        logging.debug(f"Fetched all results: {len(result)} rows.")
       else:
         result = None
       
@@ -95,16 +100,19 @@ class PostgresClient:
         query_upper.startswith("UPDATE") or \
         query_upper.startswith("DELETE"):
         connection.commit()
+        logging.info("Transaction committed for DML operation.")
 
       return result
     
     except psycopg2.Error as e:
       logging.error(f"Error executing query: {e}")
       connection.rollback()
+      logging.warning("Transaction rolled back due to error.")
       raise 
     finally:
       if cursor:
         cursor.close()
+        logging.debug("Cursor closed.")
 
 # Global database client instance
 db_client = PostgresClient()
@@ -123,12 +131,15 @@ def db_transaction():
   """
   connection = db_client._get_connection()
   try:
+    logging.info("Starting database transaction.")
     yield connection
     connection.commit()
+    logging.info("Database transaction committed successfully.")
   except psycopg2.Error as e:
     logging.error(f"Error in database transaction: {e}")
     connection.rollback()
+    logging.warning("Database transaction rolled back due to error.")
     raise
   finally:
-    pass
+    logging.info("Database transaction context exited.")
 

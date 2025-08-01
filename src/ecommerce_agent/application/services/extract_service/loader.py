@@ -15,7 +15,7 @@ class LoaderService:
     """
     pass
   
-  def get_txt_loader(self, directory: Path):
+  def get_txt_loader(self, directory: Path) -> DirectoryLoader:
     """
     Retrieves a DirectoryLoader configured for loading text files (.txt).
 
@@ -25,6 +25,7 @@ class LoaderService:
     Returns:
       DirectoryLoader: An initialized DirectoryLoader for text files.
     """
+    logging.info(f"Configuring TXT loader for directory: {directory}")
     loader = DirectoryLoader(
       path=directory,
       glob="**/*.txt",
@@ -36,7 +37,7 @@ class LoaderService:
     )
     return loader
   
-  def get_pdf_loader(self, directory: Path):
+  def get_pdf_loader(self, directory: Path) -> DirectoryLoader:
     """
     Retrieves a DirectoryLoader configured for loading PDF files (.pdf).
 
@@ -46,6 +47,7 @@ class LoaderService:
     Returns:
       DirectoryLoader: An initialized DirectoryLoader for PDF files.
     """
+    logging.info(f"Configuring PDF loader for directory: {directory}")
     loader = DirectoryLoader(
       path=directory,
       glob="**/*.pdf",
@@ -66,6 +68,7 @@ class LoaderService:
     Returns:
       tuple[DirectoryLoader, DirectoryLoader]: A tuple containing the text loader and the PDF loader.
     """
+    logging.info(f"Getting all document loaders for directory: {directory}")
     txt_loader = self.get_txt_loader(directory)
     pdf_loader = self.get_pdf_loader(directory)
     return txt_loader, pdf_loader
@@ -82,11 +85,12 @@ class LoaderService:
     """
     documents = []
     txt_loader, pdf_loader = self.get_loaders(directory)
-    logging.info("Loading documents")
-    documents.extend(txt_loader.load())
-    documents.extend(pdf_loader.load())
-    logging.info("Documents loaded")
-    logging.info(f"Loaded {len(documents)} documents from {directory}")
+    logging.info(f"Loading documents from directory: {directory}")
+    txt_documents = txt_loader.load()
+    pdf_documents = pdf_loader.load()
+    documents.extend(txt_documents)
+    documents.extend(pdf_documents)
+    logging.info(f"Finished loading. Loaded {len(documents)} documents in total.")
     return documents
   
   

@@ -34,44 +34,22 @@ async def lifespan(app: FastAPI):
       with db_transaction() as conn:
         cursor = conn.cursor()
         cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
-        cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;") 
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_search;") 
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS documents (
                 id SERIAL PRIMARY KEY,
                 content TEXT NOT NULL,
                 embedding VECTOR(1536) NOT NULL,
-                content_tsv TSVECTOR,
                 window_content TEXT,
                 source TEXT
             );
         """)
-        
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS documents_content_tsv_idx
-            ON documents USING GIN (content_tsv);
-        """)
 
         cursor.execute("""
-            CREATE OR REPLACE FUNCTION update_documents_content_tsv() RETURNS TRIGGER AS $$
-            BEGIN
-                NEW.content_tsv := to_tsvector('spanish', NEW.content);
-                RETURN NEW;
-            END;
-            $$ LANGUAGE plpgsql;
-        """)
-
-        cursor.execute("""
-            DROP TRIGGER IF EXISTS trg_documents_content_tsv ON documents;
-        """)
-        cursor.execute("""
-            CREATE TRIGGER trg_documents_content_tsv
-            BEFORE INSERT OR UPDATE ON documents
-            FOR EACH ROW EXECUTE FUNCTION update_documents_content_tsv();
-        """)
-        
-        cursor.execute("""
-            UPDATE documents SET content_tsv = to_tsvector('spanish', content) WHERE content_tsv IS NULL;
+            CREATE INDEX IF NOT EXISTS documents_search_idx
+            ON documents USING bm25 (id, content)
+            WITH (key_field='id');
         """)
 
         conn.commit()
@@ -137,7 +115,7 @@ async def telegram_webhook(request: Request):
     dict: A status dictionary indicating whether the update was processed or ignored.
   """
   update = await request.json()
-  print(f"Received Telegram update: {update}")
+  logging.info(f"Received Telegram update: {update}")
   if "message" in update and "text" in update["message"]:
       text = update["message"]["text"]
       chat_id = update["message"]["chat"]["id"]
@@ -153,7 +131,7 @@ async def telegram_webhook(request: Request):
       logging.info("Response sent to Telegram")
       return {"status": "ok"}
   
-  return {"status": "ignored", "message": "No text message"}
+  return {"status": "ignored", "message": "No text message received or processed."}
 
 if __name__ == "__main__":
     import uvicorn

@@ -26,5 +26,5 @@ def create_graph_workflow() -> StateGraph:
   )
   graph.add_edge("tools", "conversation")
   graph.add_edge(START, "conversation")
-  logging.info("Graph workflow created")
+  logging.info("Graph workflow created successfully.")
   return graph

@@ -40,10 +40,9 @@ class DocumentRetrieverTool(BaseTool):
     Returns:
       str: A formatted string containing the content of the retrieved documents.
     """
-    logging.info(f"Retrieving documents with query: {query}")
+    logging.info(f"Initiating document retrieval with query: '{query}'.")
     docs = DocumentRetrieverService().retrieve_hybrid_documents(query, top_k)
-    logging.info("Documents retrieved") 
-    logging.info(f"Documents retrieved: {len(docs)}")
+    logging.info(f"Document retrieval completed. Found {len(docs)} documents.") 
     return self._format_docs(docs)
 
 

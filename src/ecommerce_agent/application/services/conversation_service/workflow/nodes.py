@@ -18,11 +18,11 @@ async def conversation_node(state: ConversationState) -> dict[str, Any]:
     dict: A dictionary containing the updated messages from the response chain.
   """
   response_chain = get_response_chain()
-  logging.info("Response chain obtained")
+  logging.info("Response chain successfully obtained for conversation node.")
   response = await response_chain.ainvoke(
     {
       "messages": state['messages']
     }
   )
-  logging.info("Response chain invoked")
+  logging.info("Response chain invoked for conversation node.")
   return {"messages": response}

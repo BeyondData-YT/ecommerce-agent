@@ -37,7 +37,7 @@ async def generate_response(
   graph = create_graph_workflow()
   try:
     graph = graph.compile()
-    logging.info("Graph compiled")
+    logging.info("Graph workflow compiled successfully.")
     output_state = await graph.ainvoke(
       input={
         "messages": __format_messages(messages=messages)
@@ -71,7 +71,7 @@ async def get_streaming_response(
   graph = create_graph_workflow()
   try:
     graph = graph.compile()
-    logging.info("Graph compiled")
+    logging.info("Graph workflow compiled successfully for streaming.")
     async for chunk in graph.astream(
       input={
         "messages": __format_messages(messages=messages)
@@ -104,11 +104,13 @@ def __format_messages(messages: Union[str, list[Union[str, dict[str, Any]]]]) ->
   Raises:
     ValueError: If an invalid message role is encountered in the input dictionaries.
   """
+  logging.info(f"Formatting messages: {messages}")
   if isinstance(messages, str):
     return [HumanMessage(content=messages)]
   
   if isinstance(messages, list):
     if not messages:
+      logging.warning("No messages provided for formatting.")
       return []
     
     # Check if the first message is a dictionary (for role-based messages)
@@ -123,10 +125,12 @@ def __format_messages(messages: Union[str, list[Union[str, dict[str, Any]]]]) ->
           elif message['role'] == 'assistant':
             result.append(AIMessage(content=message['content']))
           else:
+            logging.error(f"Invalid message role encountered: {message['role']}")
             raise ValueError(f"Invalid message role: {message['role']}")
         return result
       
     # Assume it's a list of strings if not a list of dictionaries
     return [HumanMessage(content=message) for message in messages if isinstance(message, str)]
   
+  logging.warning(f"Unsupported message format: {type(messages)}. Returning empty list.")
   return []

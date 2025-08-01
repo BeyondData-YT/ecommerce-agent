@@ -1,8 +1,7 @@
 from typing import List, Dict, Optional
 from ecommerce_agent.domain.document import Document
 from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_client
-import math # Para la función de Reciprocal Rank Fusion
-import logging # Para logging consistente
+import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -68,13 +67,13 @@ class DocumentService:
                 document.content = sanitized_content 
                 document.window_content = sanitized_window_content
                 document.source = sanitized_source
-                logging.info(f"Documento con ID {document.id} creado exitosamente.")
+                logging.info(f"Document with ID {document.id} created successfully.")
                 return document
             else:
-                raise ValueError("Error al crear el documento: ID no retornado.")
+                raise ValueError("Error creating document: ID not returned.")
         except Exception as e:
-            logging.error(f"Error al crear el documento: {e}")
-            raise ValueError(f"Error al crear el documento: {e}")
+            logging.error(f"Error creating document: {e}")
+            raise ValueError(f"Error creating document: {e}")
     
     def get_document_by_id(self, document_id: int) -> Document:
         """
@@ -98,20 +97,22 @@ class DocumentService:
             result = self.db_client.execute_query(query, (document_id,), fetch_one=True)
             if result:
                 embedding = [float(x) for x in result['embedding'][1:-1].split(',')] if isinstance(result['embedding'], str) else result['embedding']
+                logging.info(f"Document with ID {document_id} retrieved successfully.")
                 return Document(
                     id=result['id'],
                     content=result['content'],
                     embedding=embedding,
-                    window_content=result.get('window_content'), # Usar .get para seguridad
+                    window_content=result.get('window_content'), 
                     source=result.get('source')
                 )
             else:
-                raise ValueError(f"Documento con ID {document_id} no encontrado")
+                logging.warning(f"Document with ID {document_id} not found.")
+                raise ValueError(f"Document with ID {document_id} not found.")
         except Exception as e:
-            logging.error(f"Error al obtener el documento con ID {document_id}: {e}")
-            raise ValueError(f"Error al obtener el documento: {e}")
+            logging.error(f"Error retrieving document with ID {document_id}: {e}")
+            raise ValueError(f"Error retrieving document: {e}")
             
-    # La búsqueda semántica seguirá sobre 'content' y retornará 'window_content' y 'source'
+
     def retrieve_similar_documents(self, query_embedding: List[float], top_k: int = 5) -> List[Document]:
         """
         Retrieves documents semantically similar to the given query embedding.
@@ -132,7 +133,7 @@ class DocumentService:
             ORDER BY distance
             LIMIT %s
         """
-        embedding_str = f"[{','.join(map(str, query_embedding))}]"
+        embedding_str = f"[{ ','.join(map(str, query_embedding)) }]"
         try:
             results = self.db_client.execute_query(query, (embedding_str, top_k), fetch_all=True)
             if results:
@@ -146,21 +147,21 @@ class DocumentService:
                         window_content=result.get('window_content'),
                         source=result.get('source')
                     )
-                    # Adjuntamos la distancia para uso en la fusión
+                    # Attach distance for fusion use
                     setattr(doc, 'semantic_distance', result['distance'])
                     documents.append(doc)
-                logging.info(f"Similar documents retrieved: {len(documents)}")
+                logging.info(f"Retrieved {len(documents)} similar documents.")
                 return documents
             else:
+                logging.info("No similar documents found.")
                 return []
         except Exception as e:
-            logging.error(f"Error al buscar documentos similares: {e}")
-            raise ValueError(f"Error al buscar documentos similares: {e}")
+            logging.error(f"Error searching for similar documents: {e}")
+            raise ValueError(f"Error searching for similar documents: {e}")
 
-    # La búsqueda de texto seguirá sobre 'content_tsv' y retornará 'window_content' y 'source'
     def retrieve_text_search_documents(self, query_text: str, top_k: int = 5) -> List[Document]:
         """
-        Retrieves documents matching the given text query using full-text search.
+        Retrieves documents matching the given text query using BM25.
 
         Args:
             query_text (str): The text query string.
@@ -174,14 +175,14 @@ class DocumentService:
         """
         query = """
             SELECT id, content, embedding, window_content, source,
-                    ts_rank_cd(content_tsv, plainto_tsquery('spanish', %s)) AS rank
+                    paradedb.score(id) AS rank
             FROM documents
-            WHERE content_tsv @@ plainto_tsquery('spanish', %s)
+            WHERE id @@@ paradedb.match('content', %s)
             ORDER BY rank DESC
             LIMIT %s;
         """
         try:
-            results = self.db_client.execute_query(query, (query_text, query_text, top_k), fetch_all=True)
+            results = self.db_client.execute_query(query, (query_text, top_k), fetch_all=True)
             
             if results:
                 documents = []
@@ -194,17 +195,16 @@ class DocumentService:
                         window_content=result.get('window_content'),
                         source=result.get('source')
                     )
-                    # Adjuntamos el rank para uso en la fusión
+                    # Attach rank for fusion use
                     setattr(doc, 'text_rank', result['rank'])
                     documents.append(doc)
-                logging.info(f"Text search documents retrieved: {len(documents)}")
+                logging.info(f"Retrieved {len(documents)} text search documents.")
                 return documents
             return []
         except Exception as e:
-            logging.error(f"Error en búsqueda de texto: {e}")
-            raise ValueError(f"Error al buscar documentos por texto: {e}")
+            logging.error(f"Error in text search: {e}")
+            raise ValueError(f"Error searching documents by text: {e}")
             
-    # La búsqueda híbrida simplemente llamará a las anteriores, que ya retornarán los campos correctos
     def retrieve_hybrid_documents(self, query_embedding: List[float], query_text: str, top_k: int = 5) -> List[Document]:
         """
         Performs a hybrid search (semantic + full-text) and merges the results using Reciprocal Rank Fusion (RRF).
@@ -217,23 +217,15 @@ class DocumentService:
         Returns:
             List[Document]: A list of Document objects representing the top hybrid results.
         """
-        # Perform both searches
-        # Adjust limits for each search to get enough candidates for fusion
-        logging.info("Executing semantic search")
-        semantic_results = self.retrieve_similar_documents(query_embedding, top_k=top_k * 2) # Obtén más para la fusión
-        logging.info("Executing text search")
-        text_results = self.retrieve_text_search_documents(query_text, top_k=top_k * 2) # Obtén más para la fusión
-        logging.info("Retrieved hybrid documents")
+        logging.info("Executing semantic search for hybrid retrieval.")
+        semantic_results = self.retrieve_similar_documents(query_embedding, top_k=top_k * 2) # Get more for fusion
+        logging.info("Executing text search for hybrid retrieval.")
+        text_results = self.retrieve_text_search_documents(query_text, top_k=top_k * 2) # Get more for fusion
+        logging.info("Hybrid document retrieval initiated.")
 
-        # Dictionary to store the scores of the documents
-        # { doc_id: score }
         reranked_scores: Dict[int, float] = {}
-        
-        # Map of ID to Document to reconstruct the results
         documents_by_id: Dict[int, Document] = {}
-
-        # Constante K para RRF (ajustable)
-        k = 60 
+        k = 60
 
         # Process semantic results
         for i, doc in enumerate(semantic_results):
@@ -260,5 +252,5 @@ class DocumentService:
         for doc in hybrid_documents:
             setattr(doc, 'rrf_score', reranked_scores[doc.id])
 
-        logging.info(f"Hybrid documents retrieved: {len(hybrid_documents)}")
+        logging.info(f"Successfully retrieved {len(hybrid_documents)} hybrid documents.")
         return hybrid_documents

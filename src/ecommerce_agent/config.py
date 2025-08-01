@@ -34,7 +34,7 @@ class Settings(BaseSettings):
   SMALL_CHUNK_SIZE: int = 150
   SMALL_CHUNK_OVERLAP: int = 20
   WINDOW_SIZE: int = 1000
-  WINDOW_OVERLAP: int = 100
+  WINDOW_OVERLAP: int = 0
   
   # --- Telegram Configuration ---
   TELEGRAM_BOT_TOKEN: str
