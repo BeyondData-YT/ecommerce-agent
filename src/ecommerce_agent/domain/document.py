@@ -3,7 +3,7 @@ from typing import List, Optional
 
 class Document(BaseModel):
     id: Optional[int] = None
-    content: str 
+    content: Optional[str] = None
     embedding: Optional[List[float]] = None
     window_content: Optional[str] = None 
     source: Optional[str] = None 

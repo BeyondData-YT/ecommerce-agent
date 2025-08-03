@@ -1,0 +1,196 @@
+{
+  "items": [
+    {
+      "skuCode": "89059",
+      "name": "Camiseta Oversize Negro Ícono",
+      "price": 119000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color negro con diseño de ícono",
+      "stockLevel": 5
+    },
+    {
+      "skuCode": "88896",
+      "name": "Camiseta Oversize Rojo Texto",
+      "price": 109000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color rojo con texto",
+      "stockLevel": 8
+    },
+    {
+      "skuCode": "91666",
+      "name": "Jeans Skater Negro Básico",
+      "price": 189000,
+      "description": "No content available",
+      "augmentedDescription": "Jeans skater de color negro básico",
+      "stockLevel": 2
+    },
+    {
+      "skuCode": "88922",
+      "name": "Camiseta Oversize Gris Lavandería",
+      "price": 129000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color gris con diseño de lavandería",
+      "stockLevel": 9
+    },
+    {
+      "skuCode": "88956",
+      "name": "Tank Gris Lavandería",
+      "price": 109000,
+      "description": "No content available",
+      "augmentedDescription": "Tank de color gris con diseño de lavandería",
+      "stockLevel": 1
+    },
+    {
+      "skuCode": "88947",
+      "name": "Shorts Negro Ilustración",
+      "price": 139000,
+      "description": "No content available",
+      "augmentedDescription": "Shorts de color negro con ilustración",
+      "stockLevel": 6
+    },
+    {
+      "skuCode": "88916",
+      "name": "Camiseta Oversize Azul Ilustración",
+      "price": 109000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color azul con ilustración",
+      "stockLevel": 4
+    },
+    {
+      "skuCode": "89039",
+      "name": "Camiseta Oversize Negro Texto",
+      "price": 119000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color negro con texto",
+      "stockLevel": 7
+    },
+    {
+      "skuCode": "89189",
+      "name": "Camiseta Oversize Negro Oso",
+      "price": 119000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color negro con diseño de oso",
+      "stockLevel": 3
+    },
+    {
+      "skuCode": "89088",
+      "name": "Tank Blanco Oso",
+      "price": 89000,
+      "description": "No content available",
+      "augmentedDescription": "Tank de color blanco con diseño de oso",
+      "stockLevel": 10
+    },
+    {
+      "skuCode": "88934",
+      "name": "Joggers Beige Texto",
+      "price": 179000,
+      "description": "No content available",
+      "augmentedDescription": "Joggers de color beige con texto",
+      "stockLevel": 0
+    },
+    {
+      "skuCode": "89053",
+      "name": "Camiseta Oversize Marfil Texto",
+      "price": 119000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color marfil con texto",
+      "stockLevel": 5
+    },
+    {
+      "skuCode": "89062",
+      "name": "Camiseta Oversize Rojo Ilustración",
+      "price": 109000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color rojo con ilustración",
+      "stockLevel": 8
+    },
+    {
+      "skuCode": "89082",
+      "name": "Shorts Negro Cargo",
+      "price": 149000,
+      "description": "No content available",
+      "augmentedDescription": "Shorts de color negro con cargo",
+      "stockLevel": 2
+    },
+    {
+      "skuCode": "89181",
+      "name": "Camiseta Marfil Ilustración",
+      "price": 99000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta de color marfil con ilustración",
+      "stockLevel": 9
+    },
+    {
+      "skuCode": "89050",
+      "name": "Camiseta Oversize Negro Texto",
+      "price": 119000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color negro con texto",
+      "stockLevel": 1
+    },
+    {
+      "skuCode": "86864",
+      "name": "Camiseta Oversize Azul Texto",
+      "price": 99000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color azul con texto",
+      "stockLevel": 6
+    },
+    {
+      "skuCode": "88946",
+      "name": "Shorts Marfil Texto",
+      "price": 139000,
+      "description": "No content available",
+      "augmentedDescription": "Shorts de color marfil con texto",
+      "stockLevel": 4
+    },
+    {
+      "skuCode": "88921",
+      "name": "Camiseta Oversize Marfil Texto",
+      "price": 119000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color marfil con texto",
+      "stockLevel": 7
+    },
+    {
+      "skuCode": "87889",
+      "name": "Pantalón Slim Fit Verde Básico",
+      "price": 149000,
+      "description": "No content available",
+      "augmentedDescription": "Pantalón slim fit de color verde básico",
+      "stockLevel": 3
+    },
+    {
+      "skuCode": "88889",
+      "name": "Camisa Oversize Azul Rayas",
+      "price": 149000,
+      "description": "No content available",
+      "augmentedDescription": "Camisa oversize de color azul con rayas",
+      "stockLevel": 10
+    },
+    {
+      "skuCode": "88498",
+      "name": "Buzo Hoodie Marfil Texto",
+      "price": 199000,
+      "description": "No content available",
+      "augmentedDescription": "Buzo hoodie de color marfil con texto",
+      "stockLevel": 0
+    },
+    {
+      "skuCode": "88331",
+      "name": "Pantalón Loose Fit Negro Básico",
+      "price": 169000,
+      "description": "No content available",
+      "augmentedDescription": "Pantalón loose fit de color negro básico",
+      "stockLevel": 5
+    },
+    {
+      "skuCode": "89048",
+      "name": "Camiseta Oversize Marfil Ilustración",
+      "price": 109000,
+      "description": "No content available",
+      "augmentedDescription": "Camiseta oversize de color marfil con ilustración",
+      "stockLevel": 8
+    }
+  ]
+}
