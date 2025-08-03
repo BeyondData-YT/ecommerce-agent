@@ -1,13 +1,14 @@
 from contextlib import asynccontextmanager
 import logging
+
+from ecommerce_agent.infrastructure.logger import setup_logging
+setup_logging()
 import asyncio
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
-
-from ecommerce_agent.infrastructure.logger import setup_logging
 
 from ecommerce_agent.application.services.conversation_service.generate_response import generate_response, get_streaming_response
 from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_transaction, db_client
@@ -30,7 +31,6 @@ async def lifespan(app: FastAPI):
     Raises:
         Exception: If an error occurs during database initialization.
     """
-    setup_logging()
     logging.info("Initializing FastAPI application...")
     try:
       with db_transaction() as conn:

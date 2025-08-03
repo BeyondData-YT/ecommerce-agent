@@ -1,11 +1,9 @@
-# docker-compose.yml combinado para tu aplicación y Langfuse
 services:
-  # Tu servicio de base de datos PostgreSQL con pgvector
   db:
     image: paradedb/paradedb:latest
     container_name: postgres-pgvector
     ports:
-      - "5435:5432" # Expuesto en el puerto 5435 del host
+      - "5435:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -13,18 +11,17 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-    healthcheck: # Opcional pero recomendado para asegurar que la DB está lista
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d ecommerce_db"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # Servicios de Langfuse
   langfuse-worker:
     image: docker.io/langfuse/langfuse-worker:3
     restart: always
-    depends_on: &langfuse-depends-on # Alias para reutilizar dependencias
-      langfuse-postgres: # Apunta a la nueva instancia de Postgres para Langfuse
+    depends_on: &langfuse-depends-on
+      langfuse-postgres:
         condition: service_healthy
       minio:
         condition: service_healthy
@@ -33,10 +30,10 @@ services:
       clickhouse:
         condition: service_healthy
     ports:
-      - 127.0.0.1:3030:3030 # Solo accesible desde el localhost
-    environment: &langfuse-worker-env # Alias para reutilizar variables de entorno
-      DATABASE_URL: postgresql://postgres:postgres@langfuse-postgres:5432/postgres # CHANGEME: Apunta a langfuse-postgres
-      SALT: "mysalt" # CHANGEME
+      - 127.0.0.1:3030:3030
+    environment: &langfuse-worker-env
+      DATABASE_URL: postgresql://postgres:postgres@langfuse-postgres:5432/postgres
+      SALT: "mysalt"
       ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000" # CHANGEME: generate via `openssl rand -hex 32`
       TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-true}
       LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-true}
@@ -84,11 +81,11 @@ services:
   langfuse-web:
     image: docker.io/langfuse/langfuse:3
     restart: always
-    depends_on: *langfuse-depends-on # Reutiliza las dependencias definidas arriba
+    depends_on: *langfuse-depends-on
     ports:
-      - 3000:3000 # Interfaz web de Langfuse
+      - 3000:3000
     environment:
-      <<: *langfuse-worker-env # Reutiliza las variables de entorno del worker
+      <<: *langfuse-worker-env
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: mysecret # CHANGEME
       LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-}
@@ -113,8 +110,8 @@ services:
       - langfuse_clickhouse_data:/var/lib/clickhouse
       - langfuse_clickhouse_logs:/var/log/clickhouse-server
     ports:
-      - 127.0.0.1:8123:8123 # Solo accesible desde el localhost
-      - 127.0.0.1:9000:9000 # Solo accesible desde el localhost
+      - 127.0.0.1:8123:8123
+      - 127.0.0.1:9000:9000
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
       interval: 5s
@@ -132,8 +129,8 @@ services:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: miniosecret # CHANGEME
     ports:
-      - 9090:9000 # Consola de Minio
-      - 127.0.0.1:9091:9001 # Solo accesible desde el localhost
+      - 9090:9000
+      - 127.0.0.1:9091:9001
     volumes:
       - langfuse_minio_data:/data
     healthcheck:
@@ -150,14 +147,13 @@ services:
     command: >
       --requirepass ${REDIS_AUTH:-myredissecret}
     ports:
-      - 127.0.0.1:6379:6379 # Solo accesible desde el localhost
+      - 127.0.0.1:6379:6379
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 3s
       timeout: 10s
       retries: 10
 
-  # Instancia de PostgreSQL para Langfuse (separada de tu DB principal)
   langfuse-postgres:
     image: docker.io/postgres:${POSTGRES_VERSION:-latest}
     restart: always
@@ -171,13 +167,13 @@ services:
       POSTGRES_PASSWORD: postgres # CHANGEME
       POSTGRES_DB: postgres
     ports:
-      - 127.0.0.1:5436:5432 # CAMBIO: Ahora expuesto en el puerto 5436 del host
+      - 127.0.0.1:5436:5432
     volumes:
       - langfuse_postgres_data:/var/lib/postgresql/data
 
 volumes:
-  postgres_data: # Volumen para tu DB principal
-  langfuse_postgres_data: # Volumen para la DB de Langfuse
+  postgres_data:
+  langfuse_postgres_data:
     driver: local
   langfuse_clickhouse_data:
     driver: local
