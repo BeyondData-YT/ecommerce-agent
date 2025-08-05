@@ -1,9 +1,11 @@
 from typing import List, Dict, Optional
+from ecommerce_agent.config import settings
 from ecommerce_agent.domain.document import Document
-from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_client
+from ecommerce_agent.application.services.base_service import BaseService
+from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_client, db_transaction
 import logging
 
-class DocumentService:
+class DocumentService(BaseService):
     """
     Service class for interacting with the document storage in the PostgreSQL database.
     Handles CRUD operations for documents, including embedding and full-text search capabilities.
@@ -12,22 +14,42 @@ class DocumentService:
         """
         Initializes the DocumentService with a database client.
         """
-        self.db_client = db_client
-    
-    def _sanitize_string_for_db(self, text: Optional[str]) -> Optional[str]:
-        """
-        Removes null bytes from a string before DB insertion to prevent database errors.
+        super().__init__(db_client) 
         
-        Args:
-            text (Optional[str]): The input string to sanitize.
+    def _create_table(self):
+        try:
+            with db_transaction() as conn:
+                cursor = conn.cursor()
+                logging.info("Creating documents table...")
+                cursor.execute("""
+                CREATE TABLE IF NOT EXISTS documents (
+                    id SERIAL PRIMARY KEY,
+                    content TEXT NOT NULL,
+                    embedding VECTOR(%s) NOT NULL,
+                    window_content TEXT,
+                    source TEXT
+                );
+                """, (settings.EMBEDDING_DIMENSION,))
+                conn.commit()
+        except Exception as e:
+            logging.error(f"Error creating documents table: {e}")
+            raise
             
-        Returns:
-            Optional[str]: The sanitized string, or None if the input was None.
-        """
-        if text is None:
-            return None
-        return text.replace('\x00', '')
-    
+    def _create_index(self):
+        try:
+            with db_transaction() as conn:
+                cursor = conn.cursor()
+                logging.info("Creating documents index...")
+                cursor.execute("""
+                CREATE INDEX IF NOT EXISTS documents_search_idx
+                ON documents USING bm25 (id, content)
+                WITH (key_field='id');
+                """)
+            conn.commit()
+        except Exception as e:
+            logging.error(f"Error creating documents index: {e}")
+            raise
+        
     def create_document(self, document: Document) -> Optional[Document]:
         """
         Creates a new document record in the database.
@@ -175,7 +197,7 @@ class DocumentService:
             SELECT id, content, embedding, window_content, source,
                     paradedb.score(id) AS rank
             FROM documents
-            WHERE id @@@ paradedb.match('content', %s)
+            WHERE id @@@ paradedb.with_index('documents_search_idx', paradedb.match('content', %s))
             ORDER BY rank DESC
             LIMIT %s;
         """

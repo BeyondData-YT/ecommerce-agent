@@ -1,6 +1,6 @@
 from langchain_core.tools import BaseTool
 from langchain_core.tools.base import ArgsSchema
-from ecommerce_agent.application.services.rag.retriever import DocumentRetrieverService
+from ecommerce_agent.application.services.rag.document_retriever import DocumentRetrieverService
 from ecommerce_agent.domain.document_retriever_input import DocumentRetrieverInput
 from ecommerce_agent.domain.document import Document
 import logging

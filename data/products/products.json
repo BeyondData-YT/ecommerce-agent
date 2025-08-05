@@ -1,196 +1,164 @@
 {
   "items": [
     {
-      "skuCode": "89059",
+      "code": "89059",
       "name": "Camiseta Oversize Negro Ícono",
       "price": 119000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color negro con diseño de ícono",
-      "stockLevel": 5
+      "description": "La 'Camiseta Oversize Negro Ícono' es una prenda de alta calidad, perfecta para un look casual y moderno. Confeccionada en un lujoso tejido Rib Premium de 410g, su textura es densa y confortable. El diseño minimalista se centra en el icónico logo de la marca, delicadamente bordado en la parte frontal con hilo tono a tono, creando un efecto sutil y elegante. Un pequeño banderín en el ruedo añade un detalle distintivo. Ideal para quienes buscan una camiseta negra, de gran gramaje, con un ajuste holgado y detalles bordados de alta gama.",
+      "stock_level": 5,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/674985/89059-1.jpg?v=638896597659030000"
     },
     {
-      "skuCode": "88896",
+      "code": "88896",
       "name": "Camiseta Oversize Rojo Texto",
       "price": 109000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color rojo con texto",
-      "stockLevel": 8
+      "description": "Siente la vibrante energía de la 'Camiseta Oversize Rojo Texto', diseñada para destacar. Este modelo de corte holgado está fabricado con un Jersey Premium de 200g, que ofrece un equilibrio perfecto entre ligereza y durabilidad. La prenda cobra vida con una estampación en alta densidad en el frente, que otorga relieve y un tacto tridimensional al texto. En la espalda, una impactante estampación en plastisol complementa el diseño. Su espalda de corte completo sin sisa y el banderín en el ruedo le dan un toque extra de estilo. Es una opción audaz para quienes buscan una camiseta roja, de ajuste oversize, con estampados en relieve y detalles únicos.",
+      "stock_level": 3,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/675121/88896-1.jpg?v=638896590884100000"
     },
     {
-      "skuCode": "91666",
+      "code": "91666",
       "name": "Jeans Skater Negro Básico",
       "price": 189000,
-      "description": "No content available",
-      "augmentedDescription": "Jeans skater de color negro básico",
-      "stockLevel": 2
+      "description": "Los 'Jeans Skater Negro Básico' son la elección perfecta para quienes buscan comodidad y estilo urbano. Confeccionados en un robusto denim premium de 10,5 Oz, estos jeans negros tienen un fit holgado y relajado, ideal para el movimiento. El acabado con lavandería de efecto perlado les da una textura única y desgastada, aportando carácter a la prenda. Incluyen los detalles clásicos de los jeans de cinco bolsillos, además de un botón y remaches exclusivos de la marca, un banderín y una garra en la pretina posterior. Un básico versátil y resistente para cualquier guardarropa, especialmente si buscas unos jeans negros anchos, con textura y un estilo de skate.",
+      "stock_level": 7,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/675357/91666-1.jpg?v=638896616714770000"
     },
     {
-      "skuCode": "88922",
-      "name": "Camiseta Oversize Gris Lavandería",
-      "price": 129000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color gris con diseño de lavandería",
-      "stockLevel": 9
-    },
-    {
-      "skuCode": "88956",
+      "code": "88956",
       "name": "Tank Gris Lavandería",
       "price": 109000,
-      "description": "No content available",
-      "augmentedDescription": "Tank de color gris con diseño de lavandería",
-      "stockLevel": 1
+      "description": "El 'Tank Gris Lavandería' es una pieza esencial con un toque vintage. Su corte 'Regular Fit' y el tejido Jersey Premium de 200g ofrecen una silueta cómoda y ligera, ideal para los días calurosos. Lo más destacado de esta prenda es su acabado 'Acid Wash' en color gris, que le confiere un aspecto desgastado y único, como si fuera una pieza de colección. Los estampados en frente y espalda, realizados con la técnica de plastisol, añaden un contraste sutil y duradero. Perfecto para quienes buscan una tank top gris, con un acabado lavado, y estampados discretos.",
+      "stock_level": 4,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/674957/88956-1.jpg?v=638896598093330000"
     },
     {
-      "skuCode": "88947",
-      "name": "Shorts Negro Ilustración",
-      "price": 139000,
-      "description": "No content available",
-      "augmentedDescription": "Shorts de color negro con ilustración",
-      "stockLevel": 6
-    },
-    {
-      "skuCode": "88916",
+      "code": "88916",
       "name": "Camiseta Oversize Azul Ilustración",
       "price": 109000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color azul con ilustración",
-      "stockLevel": 4
+      "description": "La 'Camiseta Oversize Azul Ilustración' es una obra de arte para vestir. Confeccionada en un robusto Jersey Premium de 250g, esta camiseta ofrece una caída pesada y de gran calidad. El diseño se enriquece con ilustraciones creativas estampadas en el frente y la espalda, utilizando una combinación de dos técnicas: el plastisol, que proporciona un acabado liso y brillante, y el puff, que añade un efecto tridimensional y suave al tacto. Ideal para los amantes del arte y la moda urbana que buscan una camiseta azul, de corte oversize, con estampados originales y texturizados.",
+      "stock_level": 5,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/675065/88916-1.jpg?v=638896591628370000"
     },
     {
-      "skuCode": "89039",
-      "name": "Camiseta Oversize Negro Texto",
-      "price": 119000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color negro con texto",
-      "stockLevel": 7
-    },
-    {
-      "skuCode": "89189",
-      "name": "Camiseta Oversize Negro Oso",
-      "price": 119000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color negro con diseño de oso",
-      "stockLevel": 3
-    },
-    {
-      "skuCode": "89088",
+      "code": "89088",
       "name": "Tank Blanco Oso",
       "price": 89000,
-      "description": "No content available",
-      "augmentedDescription": "Tank de color blanco con diseño de oso",
-      "stockLevel": 10
+      "description": "El 'Tank Blanco Oso' es una prenda con personalidad, que mezcla simplicidad y un toque divertido. Fabricado en un Jersey Premium de 200g, su 'Regular Fit' es perfecto para un uso diario. La espalda presenta una impresionante estampación en gran formato de un oso, realizada con una técnica textil que garantiza durabilidad y colores vivos. En contraste, un sutil texto bordado en el cuello añade un detalle inesperado y elegante. Para rematar, un pequeño banderín en el frente le da un toque distintivo. Una excelente opción para quienes buscan una tank top blanca, con un diseño de oso en la espalda y detalles bordados.",
+      "stock_level": 7,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/675153/89088-1.jpg?v=638896599052400000"
     },
     {
-      "skuCode": "88934",
+      "code": "88934",
       "name": "Joggers Beige Texto",
       "price": 179000,
-      "description": "No content available",
-      "augmentedDescription": "Joggers de color beige con texto",
-      "stockLevel": 0
+      "description": "Los 'Joggers Beige Texto' redefinen la comodidad con estilo. Confeccionados en una Burda Premium de alto gramaje, estos joggers de corte 'Regular Fit' son ideales para un look relajado. El detalle principal es un bordado sutil de la letra 'M' en el frente, un guiño minimalista a la marca. La prenda se distingue por sus piezas en costados, que muestran el revés de la tela, y por las alforzas en el delantero y posterior, que aportan estructura y un ajuste impecable. Los bolsillos dobles con cierre invisible en el costado derecho añaden funcionalidad sin sacrificar el diseño. Perfectos para quienes buscan unos joggers beige, cómodos, con detalles de costura y bordados discretos.",
+      "stock_level": 5,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/674113/88934-1.jpg?v=638890390887670000"
     },
     {
-      "skuCode": "89053",
-      "name": "Camiseta Oversize Marfil Texto",
-      "price": 119000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color marfil con texto",
-      "stockLevel": 5
-    },
-    {
-      "skuCode": "89062",
-      "name": "Camiseta Oversize Rojo Ilustración",
-      "price": 109000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color rojo con ilustración",
-      "stockLevel": 8
-    },
-    {
-      "skuCode": "89082",
+      "code": "89082",
       "name": "Shorts Negro Cargo",
       "price": 149000,
-      "description": "No content available",
-      "augmentedDescription": "Shorts de color negro con cargo",
-      "stockLevel": 2
+      "description": "Los 'Shorts Negro Cargo' son la combinación perfecta de estilo utilitario y confort. Fabricados en un Piqué Premium de 280g, estos shorts de corte 'Regular Fit' son duraderos y resistentes. El diseño se destaca por su versatilidad, con un texto bordado en la pretina y bolsillos cargo laterales con cierres de velcro, ideales para guardar tus pertenencias de forma segura. Las piezas en los costados y la placa metálica contramarcada con el logo de la marca elevan la prenda, dándole un toque de lujo. Una opción ideal si buscas unos shorts negros, con estilo cargo y acabados de alta calidad.",
+      "stock_level": 4,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/674201/89082-1.jpg?v=638890391843270000"
     },
     {
-      "skuCode": "89181",
-      "name": "Camiseta Marfil Ilustración",
-      "price": 99000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta de color marfil con ilustración",
-      "stockLevel": 9
-    },
-    {
-      "skuCode": "89050",
-      "name": "Camiseta Oversize Negro Texto",
-      "price": 119000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color negro con texto",
-      "stockLevel": 1
-    },
-    {
-      "skuCode": "86864",
-      "name": "Camiseta Oversize Azul Texto",
-      "price": 99000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color azul con texto",
-      "stockLevel": 6
-    },
-    {
-      "skuCode": "88946",
-      "name": "Shorts Marfil Texto",
-      "price": 139000,
-      "description": "No content available",
-      "augmentedDescription": "Shorts de color marfil con texto",
-      "stockLevel": 4
-    },
-    {
-      "skuCode": "88921",
+      "code": "88921",
       "name": "Camiseta Oversize Marfil Texto",
       "price": 119000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color marfil con texto",
-      "stockLevel": 7
+      "description": "La 'Camiseta Oversize Marfil Texto' es una pieza moderna y minimalista con detalles artesanales. Confeccionada en un Piqué Premium de 250g, ofrece una textura sofisticada y un ajuste holgado. El texto estampado en el frente con la técnica de alta densidad crea un relieve sutil y atractivo al tacto. Las costuras decorativas en los ruedos, frente y espalda, junto con un corte tipo almilla en la espalda, le dan un acabado cuidado y distintivo. Una prenda perfecta para quienes buscan una camiseta oversize, de color marfil o crudo, con textura, y detalles de costura.",
+      "stock_level": 8,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/673212/88921-1.jpg?v=638884340623370000"
     },
     {
-      "skuCode": "87889",
+      "code": "88946",
+      "name": "Shorts Marfil Texto",
+      "price": 139000,
+      "description": "Los 'Shorts Marfil Texto' son la opción ideal para un look fresco y con estilo. Fabricados en un Piqué Premium de 260g, estos shorts de corte 'Regular Fit' combinan comodidad y un diseño elegante. La estampación en alta densidad en el frente le da un relieve táctil al texto, añadiendo un detalle moderno y de alta calidad. Un banderín en el ruedo y una cotilla en la parte posterior completan el diseño, aportando un toque de exclusividad. Son perfectos para quienes buscan unos shorts de color marfil, con una textura de piqué, un ajuste cómodo y un estampado en relieve.",
+      "stock_level": 6,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/674257/88946-1.jpg?v=638890392421730000"
+    },
+    {
+      "code": "87889",
       "name": "Pantalón Slim Fit Verde Básico",
       "price": 149000,
-      "description": "No content available",
-      "augmentedDescription": "Pantalón slim fit de color verde básico",
-      "stockLevel": 3
+      "description": "El 'Pantalón Slim Fit Verde Básico' es una prenda versátil que combina un ajuste moderno con funcionalidad. Confeccionado en un drill premium de 6,9 Oz, este pantalón verde se adapta a tu figura con su corte 'Slim Fit'. La pretina elástica con cordón interno asegura un ajuste cómodo y personalizado. Sus bolsillos frontales y posteriores invisibles mantienen la línea limpia de la prenda, mientras que el elástico en la bota crea un efecto de volumen y un estilo contemporáneo. Una excelente elección para quienes buscan un pantalón de color verde, con un ajuste entallado y detalles de ajuste prácticos.",
+      "stock_level": 6,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/674085/87889-1.jpg?v=638890390800970000"
     },
     {
-      "skuCode": "88889",
-      "name": "Camisa Oversize Azul Rayas",
-      "price": 149000,
-      "description": "No content available",
-      "augmentedDescription": "Camisa oversize de color azul con rayas",
-      "stockLevel": 10
-    },
-    {
-      "skuCode": "88498",
-      "name": "Buzo Hoodie Marfil Texto",
-      "price": 199000,
-      "description": "No content available",
-      "augmentedDescription": "Buzo hoodie de color marfil con texto",
-      "stockLevel": 0
-    },
-    {
-      "skuCode": "88331",
+      "code": "88331",
       "name": "Pantalón Loose Fit Negro Básico",
       "price": 169000,
-      "description": "No content available",
-      "augmentedDescription": "Pantalón loose fit de color negro básico",
-      "stockLevel": 5
+      "description": "El 'Pantalón Loose Fit Negro Básico' es un jean que prioriza la comodidad y el estilo holgado. Hecho 100% de algodón con un peso de 10oz, este jean de corte 'loose' ofrece una sensación de libertad en el movimiento. Su diseño clásico de cinco bolsillos se moderniza con remaches en contraste y cortes frontales asentados que añaden estructura. En la parte posterior, una garra con el logo de la marca y un bordado localizado en el bolsillo le dan un toque distintivo. Ideal para quienes buscan un pantalón jean negro, con un ajuste amplio, detalles de costura y un diseño atemporal.",
+      "stock_level": 8,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/673076/88331-1.jpg?v=638884339707130000"
     },
     {
-      "skuCode": "89048",
-      "name": "Camiseta Oversize Marfil Ilustración",
-      "price": 109000,
-      "description": "No content available",
-      "augmentedDescription": "Camiseta oversize de color marfil con ilustración",
-      "stockLevel": 8
+      "code": "88498",
+      "name": "Buzo Hoodie Marfil Texto",
+      "price": 199000,
+      "description": "El 'Buzo Hoodie Marfil Texto' es una prenda esencial para el clima fresco, que combina confort y un diseño minimalista. Confeccionado en un Piqué Premium de 286g, su textura es robusta y suave al tacto. El corte 'Regular Fit' y los puños y fajón en rib aseguran un ajuste perfecto y duradero. Las estampaciones en el frente y la espalda, realizadas con la técnica de alta densidad, le dan un relieve sutil y un acabado premium al texto. Perfecto para quienes buscan un buzo con capucha, de color marfil o crema, con una textura interesante y estampados en relieve.",
+      "stock_level": 3,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/673028/88498-1.jpg?v=638884339329570000"
+    },
+    {
+      "code": "88889",
+      "name": "Camisa Oversize Azul Rayas",
+      "price": 149000,
+      "description": "La 'Camisa Oversize Azul Rayas' es una prenda sofisticada con un toque casual y atemporal. Hecha con una Popelina Premium de 91g, es ligera y transpirable. El diseño de rayas azules se realza con un bordado en el frente y la espalda, realizado con hilo rojo en contraste, que crea un efecto visual llamativo. El corte 'Oversize' ofrece una silueta moderna y relajada, complementada por un corte de almilla en la espalda y un banderín en el ruedo. Ideal para quienes buscan una camisa de rayas, de corte holgado, con bordados en contraste y un tejido ligero.",
+      "stock_level": 5,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/672900/88889-1.jpg?v=638884337797400000"
+    },
+    {
+      "code": "88313",
+      "name": "Jeans Slim Fit Azul Claro Básico",
+      "price": 179000,
+      "description": "Los 'Jeans Slim Fit Azul Claro Básico' son una prenda de mezclilla moderna y confortable. Confeccionados con una mezcla de 50% algodón y 50% lyocell, estos jeans azul claro ('hielo') tienen un tacto suave y un ajuste 'Slim', que se adapta a la forma del cuerpo sin ser demasiado apretado. Su diseño clásico de cinco bolsillos es versátil para cualquier ocasión. La garra blanca contramarcada con el logo 'NLMTD' en la pretina posterior añade un toque exclusivo y de marca. Una opción perfecta para quienes buscan unos jeans de color azul claro, con un corte entallado y un diseño minimalista.",
+      "stock_level": 8,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/672066/88313-1.jpg?v=638878382116330000"
+    },
+    {
+      "code": "87439",
+      "name": "Polo Marfil Ícono",
+      "price": 149000,
+      "description": "El 'Polo Marfil Ícono' es una prenda clásica con un giro contemporáneo. Su tejido Piqué Premium de 200g le da una textura sutil y un ajuste 'Regular Fit' que es cómodo y elegante. El polo destaca por un aplique bordado con el logo de la marca en un llamativo color verde en contraste, que le da un toque de sofisticación. Las cajas en los costados y el cuello y puños tejidos con líneas en contraste completan el diseño, aportando una sensación de artesanía. Ideal para quienes buscan un polo de color marfil, con detalles de rib, bordados de logo y un estilo atemporal.",
+      "stock_level": 4,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/671699/87439-1.jpg?v=638878303464370000"
+    },
+    {
+      "code": "87440",
+      "name": "Polo Verde Ícono",
+      "price": 149000,
+      "description": "El 'Polo Verde Ícono' es una pieza de estilo que se inspira en el diseño clásico con un toque de modernidad. Confeccionado en un tejido Piqué Premium de 200g, su 'Regular Fit' y textura son perfectos para un look pulido y casual. El polo presenta un aplique bordado con el logo de la marca en un elegante color marfil en contraste, que resalta sobre el vibrante verde. Las cajas en los costados y el cuello y puños tejidos con líneas en contraste le dan un acabado cuidado y de alta calidad. Perfecto para quienes buscan un polo de color verde, con detalles de rib, un logo bordado y un diseño refinado.",
+      "stock_level": 4,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/671671/87440-1.jpg?v=638878303406030000"
+    },
+    {
+      "code": "91981",
+      "name": "Shorts Marfil Básico",
+      "price": 139000,
+      "description": "Los 'Shorts Marfil Básico' son una prenda cómoda y de alta calidad, ideal para un look relajado y desenfadado. Su corte 'Oversize' y el tejido Burda Premium de 305g le dan un tacto suave y una caída pesada. El diseño minimalista se centra en la calidad de la prenda, con un banderín bordado en el frente con hilo tono a tono, creando un detalle sutil. El cordón extraplano interno en la cintura permite un ajuste personalizado. Una opción excelente para quienes buscan unos shorts de color marfil, de corte holgado, con una textura gruesa y un diseño sencillo.",
+      "stock_level": 6,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/672342/91981-1.jpg?v=638878306727730000"
+    },
+    {
+      "code": "88955",
+      "name": "Tank Blanco Ilustración",
+      "price": 89000,
+      "description": "La 'Tank Blanco Ilustración' es una prenda versátil y con un toque artístico. Su corte 'Regular Fit' y el tejido Jersey Premium de 200g la hacen ideal para el uso diario. Lo más llamativo de esta tank top son las ilustraciones estampadas en el frente y la espalda, realizadas con la técnica de estampación textil, que garantizan colores vibrantes y durabilidad. El diseño de ilustración le da un carácter único y expresivo. Perfecta para quienes buscan una tank top blanca, con un corte cómodo y estampados gráficos originales.",
+      "stock_level": 4,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/672234/88955-1.jpg?v=638878306364970000"
+    },
+    {
+      "code": "88884",
+      "name": "Buzo Pullover Negro Ilustración",
+      "price": 169000,
+      "description": "El 'Buzo Pullover Negro Ilustración' es una prenda de estilo y calidez. Confeccionado en una Burda Premium de 305g, su tacto es suave y su caída, robusta. Este buzo de corte 'Regular Fit' se destaca por una ilustración bordada en el frente, que le da una textura y un acabado premium. Además, un texto bordado en el cuello añade un detalle adicional. Un banderín bordado en los costados con un hilo rojo en zigzag crea un contraste sutil y un toque de color. Ideal para quienes buscan un buzo pullover de color negro, con un bordado de ilustración, de gran gramaje y detalles de costura únicos.",
+      "stock_level": 7,
+      "image_url": "https://b2cmattelsa.vtexassets.com/arquivos/ids/670734/88884-1.jpg?v=638872264429730000"
     }
   ]
 }

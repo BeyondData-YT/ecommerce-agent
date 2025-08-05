@@ -29,6 +29,7 @@ class Settings(BaseSettings):
   # --- Data Configuration ---
   DATA_DIR: Path = Path(__file__).parent.parent.parent / "data"
   DATA_FAQS_DIR: Path = DATA_DIR / "faqs"
+  DATA_PRODUCTS_DIR: Path = DATA_DIR / "products"
 
   # --- Splitter Configuration ---
   SMALL_CHUNK_SIZE: int = 150

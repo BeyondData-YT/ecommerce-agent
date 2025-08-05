@@ -1,29 +1,55 @@
 from typing import List, Dict, Optional
+from ecommerce_agent.config import settings
 from ecommerce_agent.domain.product import Product
-from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_client
+from ecommerce_agent.application.services.base_service import BaseService
+from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_client, db_transaction
 import logging
 
-class ProductsService:
+class ProductsService(BaseService):
   def __init__(self):
     """
     Initializes the DocumentService with a database client.
     """
-    self.db_client = db_client
+    super().__init__(db_client)
     
-  def _sanitize_string_for_db(self, text: Optional[str]) -> Optional[str]:
-        """
-        Removes null bytes from a string before DB insertion to prevent database errors.
-        
-        Args:
-            text (Optional[str]): The input string to sanitize.
-            
-        Returns:
-            Optional[str]: The sanitized string, or None if the input was None.
-        """
-        if text is None:
-            return None
-        return text.replace('\x00', '')
+  def _create_table(self):
+    try:
+      with db_transaction() as conn:
+        cursor = conn.cursor()
+        logging.info("Creating products table...")
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS products (
+          id SERIAL PRIMARY KEY,
+          code TEXT NOT NULL,
+          name TEXT NOT NULL,
+          description TEXT NOT NULL,
+          embedding VECTOR(%s) NOT NULL,
+          price DECIMAL(10, 2) NOT NULL,
+          image_url TEXT,
+          stock_level INT NOT NULL,
+          is_active BOOLEAN NOT NULL
+        );
+        """, (settings.EMBEDDING_DIMENSION,))
+        conn.commit()
+    except Exception as e:
+      logging.error(f"Error creating products table: {e}")
+      raise
       
+  def _create_index(self):
+    try:
+      with db_transaction() as conn:
+        cursor = conn.cursor()
+        logging.info("Creating products index...")
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS products_search_idx
+        ON products USING bm25 (id, name, description)
+        WITH (key_field='id');
+        """)
+      conn.commit()
+    except Exception as e:
+      logging.error(f"Error creating products index: {e}")
+      raise
+  
   def create_product(self, product: Product) -> Optional[Product]:
     sanitized_name = self._sanitize_string_for_db(product.name)
     sanitized_code = self._sanitize_string_for_db(product.code)
@@ -31,15 +57,15 @@ class ProductsService:
     sanitized_image_url = self._sanitize_string_for_db(product.image_url)
     embedding_str = f"[{','.join(map(str, product.embedding))}]"
     query = """
-        INSERT INTO products (code, name, description, embedding, price, image_url, is_active)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO products (code, name, description, embedding, price, image_url, stock_level, is_active)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id
     """
     
     try:
       result = self.db_client.execute_query(
         query, 
-        (sanitized_code, sanitized_name, sanitized_description, embedding_str, product.price, sanitized_image_url, product.is_active), 
+        (sanitized_code, sanitized_name, sanitized_description, embedding_str, product.price, sanitized_image_url, product.stock_level, product.is_active), 
         fetch_one=True
       )
       if result and 'id' in result:
@@ -48,6 +74,7 @@ class ProductsService:
         product.description = sanitized_description
         product.code = sanitized_code
         product.image_url = sanitized_image_url
+        product.stock_level = product.stock_level
         product.is_active = product.is_active
         logging.info(f"Product with ID {product.id} created successfully.")
         return product
@@ -59,7 +86,7 @@ class ProductsService:
     
   def get_product_by_id(self, product_id: int) -> Optional[Product]:
     query = """
-        SELECT * FROM products WHERE id = %s
+        SELECT * FROM products WHERE id = %s AND is_active = TRUE
     """
     try:
       result = self.db_client.execute_query(query, (product_id,), fetch_one=True)
@@ -74,6 +101,7 @@ class ProductsService:
           embedding=embedding,
           price=result['price'],
           image_url=result['image_url'],
+          stock_level=result['stock_level'],
           is_active=result['is_active'])
       else:
         logging.warning(f"Product with ID {product_id} not found.")
@@ -84,7 +112,7 @@ class ProductsService:
       
   def get_product_by_code(self, product_code: str) -> Optional[Product]:
     query = """
-        SELECT * FROM products WHERE code = %s
+        SELECT * FROM products WHERE code = %s AND is_active = TRUE
     """
     try:
       result = self.db_client.execute_query(query, (product_code,), fetch_one=True)
@@ -99,6 +127,7 @@ class ProductsService:
           embedding=embedding,
           price=result['price'],
           image_url=result['image_url'],
+          stock_level=result['stock_level'],
           is_active=result['is_active'])
       else:
         logging.warning(f"Product with code {product_code} not found.")
@@ -109,8 +138,9 @@ class ProductsService:
     
   def retrieve_similar_products(self, query_embedding: List[float], top_k: int = 5) -> List[Product]:
     query = """
-        SELECT id, code, name, description, embedding, price, image_url, is_active, embedding <=> %s AS distance
+        SELECT id, code, name, description, embedding, price, image_url, stock_level, is_active, embedding <=> %s AS distance
         FROM products
+        WHERE is_active = TRUE
         ORDER BY distance
         LIMIT %s
     """
@@ -129,6 +159,7 @@ class ProductsService:
             embedding=embedding,
             price=result['price'],
             image_url=result['image_url'],
+            stock_level=result['stock_level'],
             is_active=result['is_active']
           )
           setattr(product, 'semantic_distance', result['distance'])
@@ -142,17 +173,17 @@ class ProductsService:
       logging.error(f"Error retrieving similar products: {e}")
       raise ValueError(f"Error retrieving similar products: {e}")
     
-  def retrieve_text_search_products(self, query_text: str, query_on: str = 'name', top_k: int = 5) -> List[Product]:
+  def retrieve_text_search_products(self, query_text: str, top_k: int = 5) -> List[Product]:
     sanitized_query_text = self._sanitize_string_for_db(query_text)
     query = """
-        SELECT id, code, name, description, embedding, price, image_url, is_active, paradedb.score(id) AS rank
+        SELECT id, code, name, description, embedding, price, image_url, stock_level, is_active, paradedb.score(id) AS rank
         FROM products
-        WHERE id @@@ paradedb.match(%s, %s)
+        WHERE id @@@ paradedb.with_index('products_search_idx', paradedb.match('description', %s)) AND is_active = TRUE
         ORDER BY rank DESC
-        LIMIT %s  
+        LIMIT %s 
     """
     try:
-      results = self.db_client.execute_query(query, (query_on, sanitized_query_text, top_k), fetch_all=True)
+      results = self.db_client.execute_query(query, (sanitized_query_text, top_k), fetch_all=True)
       if results:
         products = []
         for result in results:
@@ -165,6 +196,7 @@ class ProductsService:
             embedding=embedding,
             price=result['price'],
             image_url=result['image_url'],
+            stock_level=result['stock_level'],
             is_active=result['is_active']
           )
           setattr(product, 'text_rank', result['rank'])
@@ -178,9 +210,9 @@ class ProductsService:
       logging.error(f"Error retrieving text search products: {e}")
       raise ValueError(f"Error retrieving text search products: {e}")
     
-  def retrieve_hybrid_products(self, query_embedding: List[float], query_text: str, query_on: str = 'name', top_k: int = 5) -> List[Product]:
+  def retrieve_hybrid_products(self, query_embedding: List[float], query_text: str, top_k: int = 5) -> List[Product]:
     semantic_results = self.retrieve_similar_products(query_embedding, top_k=top_k * 2)
-    text_results = self.retrieve_text_search_products(query_text, query_on, top_k=top_k * 2)
+    text_results = self.retrieve_text_search_products(query_text, top_k=top_k * 2)
     
     reranked_scores: Dict[int, float] = {}
     products_by_id: Dict[int, Product] = {}

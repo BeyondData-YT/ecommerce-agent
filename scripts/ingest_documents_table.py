@@ -27,4 +27,8 @@ class IngestDocumentsTable:
       self.document_service.create_document(document)
 
 ingest_documents_table = IngestDocumentsTable()
+ingest_documents_table.document_service._create_extensions()
+ingest_documents_table.document_service._create_table()
+ingest_documents_table.document_service._create_index()
+
 ingest_documents_table.ingest_documents_table(args.directory)
