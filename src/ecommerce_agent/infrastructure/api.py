@@ -33,29 +33,6 @@ async def lifespan(app: FastAPI):
     """
     logging.info("Initializing FastAPI application...")
     try:
-      with db_transaction() as conn:
-        cursor = conn.cursor()
-        cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
-        cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_search;") 
-        
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS documents (
-                id SERIAL PRIMARY KEY,
-                content TEXT NOT NULL,
-                embedding VECTOR(%s) NOT NULL,
-                window_content TEXT,
-                source TEXT
-            );
-        """, (settings.EMBEDDING_DIMENSION,))
-
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS documents_search_idx
-            ON documents USING bm25 (id, content)
-            WITH (key_field='id');
-        """)
-
-        conn.commit()
-        logging.info("Database tables and FTS configurations verified/created successfully for the agent tool.")
         asyncio.create_task(telegram_bot_main(app))
     except Exception as e:
         logging.error(f"Error initializing database at agent startup: {e}")
