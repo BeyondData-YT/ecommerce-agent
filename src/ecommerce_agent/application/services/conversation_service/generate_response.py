@@ -1,4 +1,4 @@
-from typing import AsyncGenerator, Union, Any
+from typing import AsyncGenerator, Union, Any, Literal
 from langchain_core.messages import HumanMessage, AIMessage, AIMessageChunk
 import asyncio
 import platform
@@ -32,6 +32,7 @@ else:
 
 async def generate_response(
   messages: Union[str, list[dict[str, Any]]],
+  workflow: Literal["conversation", "image", "audio"],
   thread_id: str,
   user_id: int
   ) -> tuple[str, ConversationState]:
@@ -40,6 +41,7 @@ async def generate_response(
 
   Args:
     messages (Union[str, list[dict[str, Any]]]): The input messages, either a single string or a list of message dictionaries.
+    workflow (Literal["conversation", "image", "audio"]): The workflow to use for the conversation.
     thread_id (str): The thread ID for the conversation to identify the session.
     user_id (int): The user ID for the conversation to identify the user.
 
@@ -60,7 +62,8 @@ async def generate_response(
       logging.info("Graph workflow compiled successfully.")
       output_state = await graph.ainvoke(
         input={
-          "messages": __format_messages(messages=messages)
+          "messages": __format_messages(messages=messages),
+          "workflow": workflow
         },
         config={
           "configurable": {
@@ -83,6 +86,7 @@ async def generate_response(
   
 async def get_streaming_response(
   messages: Union[str, list[dict[str, Any]]],
+  workflow: Literal["conversation", "image", "audio"],
   thread_id: str,
   user_id: int
 ) -> AsyncGenerator[str, None]:
@@ -91,6 +95,7 @@ async def get_streaming_response(
 
   Args:
     messages (Union[str, list[dict[str, Any]]]): The input messages, either a single string or a list of message dictionaries.
+    workflow (Literal["conversation", "image", "audio"]): The workflow to use for the conversation.
     thread_id (str): The thread ID for the conversation to identify the session.
     user_id (int): The user ID for the conversation to identify the user.
   Yields:
@@ -110,7 +115,8 @@ async def get_streaming_response(
       logging.info("Graph workflow compiled successfully for streaming.")
       async for chunk in graph.astream(
         input={
-          "messages": __format_messages(messages=messages)
+          "messages": __format_messages(messages=messages),
+          "workflow": workflow
         },
         config={
           "configurable": {
