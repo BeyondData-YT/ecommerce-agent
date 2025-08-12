@@ -1,5 +1,13 @@
 from typing import AsyncGenerator, Union, Any
 from langchain_core.messages import HumanMessage, AIMessage, AIMessageChunk
+import asyncio
+import platform
+
+if platform.system() == 'Windows':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from langgraph.store.postgres.aio import AsyncPostgresStore
 from langfuse import Langfuse
 from langfuse.langchain import CallbackHandler
 from ecommerce_agent.application.services.conversation_service.workflow.state import ConversationState
@@ -23,70 +31,102 @@ else:
     logging.error("Authentication failed. Please check your credentials and host.")
 
 async def generate_response(
-  messages: Union[str, list[dict[str, Any]]]
+  messages: Union[str, list[dict[str, Any]]],
+  thread_id: str,
+  user_id: int
   ) -> tuple[str, ConversationState]:
   """
   Generates a response from the conversation graph.
 
   Args:
     messages (Union[str, list[dict[str, Any]]]): The input messages, either a single string or a list of message dictionaries.
+    thread_id (str): The thread ID for the conversation to identify the session.
+    user_id (int): The user ID for the conversation to identify the user.
 
   Returns:
     tuple[str, ConversationState]: A tuple containing the content of the last message and the complete conversation state.
   """
   graph = create_graph_workflow()
   try:
-    graph = graph.compile()
-    logging.info("Graph workflow compiled successfully.")
-    output_state = await graph.ainvoke(
-      input={
-        "messages": __format_messages(messages=messages)
-      },
-      config={
-        "configurable": {
-          "thread_id": "123"
+    async with (
+      AsyncPostgresSaver.from_conn_string(
+        conn_string=settings.POSTGRES_URI
+      ) as checkpointer,
+      AsyncPostgresStore.from_conn_string(
+        conn_string=settings.POSTGRES_URI
+      ) as store
+    ):
+      graph = graph.compile(checkpointer=checkpointer, store=store)
+      logging.info("Graph workflow compiled successfully.")
+      output_state = await graph.ainvoke(
+        input={
+          "messages": __format_messages(messages=messages)
         },
-        "callbacks": [langfuse_handler]
-      }
-    )
-    logging.info("Graph invoked")
-    last_message = output_state["messages"][-1]
-    return last_message.content, ConversationState(**output_state)
+        config={
+          "configurable": {
+            "thread_id": thread_id
+          },
+          "callbacks": [langfuse_handler],
+          "metadata": {
+            "langfuse_user_id": user_id,
+            "langfuse_session_id": thread_id
+          }
+        }
+        
+      )
+      logging.info("Graph invoked")
+      last_message = output_state["messages"][-1]
+      return last_message.content, ConversationState(**output_state)
   except Exception as e:
     logging.error(f"Error generating response: {e}")
     raise e
   
 async def get_streaming_response(
-  messages: Union[str, list[dict[str, Any]]]
+  messages: Union[str, list[dict[str, Any]]],
+  thread_id: str,
+  user_id: int
 ) -> AsyncGenerator[str, None]:
   """
   Generates a streaming response from the conversation graph.
 
   Args:
     messages (Union[str, list[dict[str, Any]]]): The input messages, either a single string or a list of message dictionaries.
-
+    thread_id (str): The thread ID for the conversation to identify the session.
+    user_id (int): The user ID for the conversation to identify the user.
   Yields:
     str: Chunks of the AI's response content.
   """
   graph = create_graph_workflow()
   try:
-    graph = graph.compile()
-    logging.info("Graph workflow compiled successfully for streaming.")
-    async for chunk in graph.astream(
-      input={
-        "messages": __format_messages(messages=messages)
-      },
-      config={
-        "configurable": {
-          "thread_id": "123"
-        },
-        "callbacks": [langfuse_handler]
-      },
-      stream_mode="messages"
+    async with (
+      AsyncPostgresSaver.from_conn_string(
+        conn_string=settings.POSTGRES_URI
+      ) as checkpointer,
+      AsyncPostgresStore.from_conn_string(
+        conn_string=settings.POSTGRES_URI
+      ) as store
     ):
-      logging.info("Streaming response")
-      if chunk[1]['langgraph_node'] == 'conversation' and isinstance(chunk[0], AIMessageChunk):
-        yield chunk[0].content
+      graph = graph.compile(checkpointer=checkpointer, store=store)
+      logging.info("Graph workflow compiled successfully for streaming.")
+      async for chunk in graph.astream(
+        input={
+          "messages": __format_messages(messages=messages)
+        },
+        config={
+          "configurable": {
+            "thread_id": thread_id
+          },
+          "callbacks": [langfuse_handler],
+          "metadata": {
+            "langfuse_user_id": user_id,
+            "langfuse_session_id": thread_id
+          }
+        },
+        stream_mode="messages"
+      ):
+        logging.info("Streaming response")
+        if chunk[1]['langgraph_node'] == 'conversation' and isinstance(chunk[0], AIMessageChunk):
+          yield chunk[0].content
   except Exception as e:
     logging.error(f"Error generating streaming response: {e}")
     raise e

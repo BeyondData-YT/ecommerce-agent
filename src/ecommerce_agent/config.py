@@ -12,11 +12,12 @@ class Settings(BaseSettings):
   GROQ_LLM_MODEL_CONTEXT_SUMMARY: str = "llama-3.1-8b-instant"
   
   # --- Postgres Configuration ---
-  POSTGRES_USER: str
-  POSTGRES_PASSWORD: str
-  POSTGRES_DB: str
-  POSTGRES_HOST: str
+  POSTGRES_USER: str = "postgres"
+  POSTGRES_PASSWORD: str 
+  POSTGRES_DB: str = "ecommerce_db"
+  POSTGRES_HOST: str = "localhost"
   POSTGRES_PORT: int = 5435
+  POSTGRES_URI: str
   
   # --- Vector Database Configuration ---
   VECTOR_DB_NAME: str = "ecommerce_db"
@@ -45,5 +46,10 @@ class Settings(BaseSettings):
   LANGFUSE_SECRET_KEY: str
   LANGFUSE_PUBLIC_KEY: str
   LANGFUSE_HOST: str
+
+  # --- ElevenLabs Configuration ---
+  ELEVENLABS_API_KEY: str
+  ELEVENLABS_VOICE_ID: str
+  ELEVENLABS_MODEL_ID: str
 
 settings = Settings()

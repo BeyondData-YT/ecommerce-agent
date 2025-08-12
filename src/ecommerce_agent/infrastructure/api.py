@@ -10,10 +10,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
 
-from ecommerce_agent.application.services.conversation_service.generate_response import generate_response, get_streaming_response
-from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_transaction, db_client
+from ecommerce_agent.application.services.conversation_service.generate_response import generate_response
+from ecommerce_agent.application.services.session import SessionService
+from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_client
 from ecommerce_agent.infrastructure.messaging.telegram.telegram_bot_handler import bot_instance, telegram_bot_main
 from ecommerce_agent.config import settings
+
+session_service = SessionService()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -97,12 +100,19 @@ async def telegram_webhook(request: Request):
   logging.info(f"Telegram update received: {update}")
   if "message" in update and "text" in update["message"]:
       text = update["message"]["text"]
+      user_id = int(update["message"]["from"]["id"])
       chat_id = update["message"]["chat"]["id"]
-      user_id = update["message"]["from"]["id"]
+
+      if text.strip().lower().startswith("/newchat"):
+        thread_id = await session_service.start_new_session(user_id)
+        await bot_instance.send_message(chat_id=user_id, text=f"New chat session started with thread ID: {thread_id}")
+        return {"status": "ok"}
       
+      thread_id = await session_service.get_or_create_session(user_id)
+      logging.info(f"Thread ID: {thread_id} \n User ID: {user_id}")
 
       logging.info("Generating response...")
-      agent_response_obj, _ = await generate_response(text)
+      agent_response_obj, _ = await generate_response(text, thread_id, user_id)
       agent_response_text = str(agent_response_obj)
       logging.info(f"Agent response text: {agent_response_text}")
       # Send the response back to Telegram
@@ -110,6 +120,26 @@ async def telegram_webhook(request: Request):
       logging.info("Response sent to Telegram")
       return {"status": "ok"}
   
+  elif "message" in update and "photo" in update["message"]:
+    photo = update["message"]["photo"]
+    photo_id = photo[-1]["file_id"]
+    file = await bot_instance.get_file(photo_id)
+    photo_bytes = await file.download_as_bytearray()
+    photo_bytes = bytes(photo_bytes)
+    
+    
+    return {"status": "ok"}
+  
+  elif "message" in update and ("audio" or "voice" in update["message"]):
+    media_type = "audio" if "audio" in update["message"] else "voice"
+    file_id = update["message"][media_type]["file_id"]
+    file = await bot_instance.get_file(file_id)
+    file_bytes = await file.download_as_bytearray()
+    file_bytes = bytes(file_bytes)
+    
+    
+    
+    
   return {"status": "ignored", "message": "No text message received or processed."}
 
 if __name__ == "__main__":
