@@ -4,4 +4,3 @@ class ConversationState(MessagesState):
   workflow: str
   summary: str
   audio_buffer: bytes
-  image_path: str

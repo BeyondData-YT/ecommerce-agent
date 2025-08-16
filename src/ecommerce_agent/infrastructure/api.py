@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 import logging
-
+import json
 from ecommerce_agent.infrastructure.logger import setup_logging
 setup_logging()
 import asyncio
@@ -125,20 +125,29 @@ async def telegram_webhook(request: Request):
   
   elif "message" in update and "photo" in update["message"]:
     photo = update["message"]["photo"]
+    caption = update["message"].get("caption", None)
     photo_id = photo[-1]["file_id"]
     file = await bot_instance.get_file(photo_id)
-    photo_bytes = await file.download_as_bytearray()
-    photo_bytes = bytes(photo_bytes)
+    image_url = file.file_path
     
-    thread_id = await session_service.get_or_create_session(user_id)
+    # thread_id = await session_service.get_or_create_session(user_id)
+    thread_id = "5"
     logging.info(f"Thread ID: {thread_id} \n User ID: {user_id}")
     
-    logging.info("Generating response...")
-    agent_response_obj, _ = await generate_response(photo_bytes, workflow="image", thread_id=thread_id, user_id=user_id)
-    agent_response_image_path = str(agent_response_obj)
+    input_message = f"The user has sent a photo with the following caption: {caption}. The image url is: {image_url}" if caption else f"The user has sent a photo. The image url is: {image_url}"
     
-    logging.info(f"Agent response image path: {agent_response_image_path}")
-    await bot_instance.send_photo(chat_id=chat_id, photo=agent_response_image_path)
+    logging.info("Generating response...")
+    agent_response_obj, _ = await generate_response(input_message, workflow="image", thread_id=thread_id, user_id=user_id)
+    
+    try:
+      agent_response_obj = json.loads(agent_response_obj)
+      for image_response in agent_response_obj.image_responses:
+        await bot_instance.send_photo(chat_id=chat_id, photo=image_response.image_url)
+        await bot_instance.send_message(chat_id=chat_id, text=image_response.caption)
+    except Exception as e:
+      logging.error(f"Error sending image response: {e}")
+      return {"status": "error", "message": "Error sending image response"}
+    
     logging.info("Response sent to Telegram")
 
     return {"status": "ok"}

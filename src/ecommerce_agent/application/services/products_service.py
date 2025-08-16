@@ -23,13 +23,14 @@ class ProductsService(BaseService):
           code TEXT NOT NULL,
           name TEXT NOT NULL,
           description TEXT NOT NULL,
-          embedding VECTOR(%s) NOT NULL,
+          text_embedding VECTOR(%s) NOT NULL,
+          image_embedding VECTOR(%s) NOT NULL,
           price DECIMAL(10, 2) NOT NULL,
           image_url TEXT,
           stock_level INT NOT NULL,
           is_active BOOLEAN NOT NULL
         );
-        """, (settings.EMBEDDING_DIMENSION,))
+        """, (settings.EMBEDDING_DIMENSION, settings.EMBEDDING_DIMENSION))
         conn.commit()
     except Exception as e:
       logging.error(f"Error creating products table: {e}")
@@ -41,7 +42,7 @@ class ProductsService(BaseService):
         cursor = conn.cursor()
         logging.info("Creating products index...")
         cursor.execute("""
-        CREATE INDEX IF NOT EXISTS products_search_idx
+        CREATE INDEX IF NOT EXISTS products_search_text_idx
         ON products USING bm25 (id, name, description)
         WITH (key_field='id');
         """)
@@ -55,17 +56,18 @@ class ProductsService(BaseService):
     sanitized_code = self._sanitize_string_for_db(product.code)
     sanitized_description = self._sanitize_string_for_db(product.description)
     sanitized_image_url = self._sanitize_string_for_db(product.image_url)
-    embedding_str = f"[{','.join(map(str, product.embedding))}]"
+    text_embedding_str = f"[{','.join(map(str, product.text_embedding))}]"
+    image_embedding_str = f"[{','.join(map(str, product.image_embedding))}]"
     query = """
-        INSERT INTO products (code, name, description, embedding, price, image_url, stock_level, is_active)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO products (code, name, description, text_embedding, image_embedding, price, image_url, stock_level, is_active)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id
     """
     
     try:
       result = self.db_client.execute_query(
         query, 
-        (sanitized_code, sanitized_name, sanitized_description, embedding_str, product.price, sanitized_image_url, product.stock_level, product.is_active), 
+        (sanitized_code, sanitized_name, sanitized_description, text_embedding_str, image_embedding_str, product.price, sanitized_image_url, product.stock_level, product.is_active), 
         fetch_one=True
       )
       if result and 'id' in result:
@@ -91,14 +93,16 @@ class ProductsService(BaseService):
     try:
       result = self.db_client.execute_query(query, (product_id,), fetch_one=True)
       if result:
-        embedding = [float(x) for x in result['embedding'][1:-1].split(',')] if isinstance(result['embedding'], str) else result['embedding']
+        text_embedding = [float(x) for x in result['text_embedding'][1:-1].split(',')] if isinstance(result['text_embedding'], str) else result['text_embedding']
+        image_embedding = [float(x) for x in result['image_embedding'][1:-1].split(',')] if isinstance(result['image_embedding'], str) else result['image_embedding']
         logging.info(f"Product with ID {product_id} retrieved successfully.")
         return Product(
           id=result['id'],
           code=result['code'],
           name=result['name'],
           description=result['description'],
-          embedding=embedding,
+          text_embedding=text_embedding,
+          image_embedding=image_embedding,
           price=result['price'],
           image_url=result['image_url'],
           stock_level=result['stock_level'],
@@ -117,14 +121,16 @@ class ProductsService(BaseService):
     try:
       result = self.db_client.execute_query(query, (product_code,), fetch_one=True)
       if result:
-        embedding = [float(x) for x in result['embedding'][1:-1].split(',')] if isinstance(result['embedding'], str) else result['embedding']
+        text_embedding = [float(x) for x in result['text_embedding'][1:-1].split(',')] if isinstance(result['text_embedding'], str) else result['text_embedding']
+        image_embedding = [float(x) for x in result['image_embedding'][1:-1].split(',')] if isinstance(result['image_embedding'], str) else result['image_embedding']
         logging.info(f"Product with code {product_code} retrieved successfully.")
         return Product(
           id=result['id'],
           code=result['code'],
           name=result['name'],
           description=result['description'],
-          embedding=embedding,
+          text_embedding=text_embedding,
+          image_embedding=image_embedding,
           price=result['price'],
           image_url=result['image_url'],
           stock_level=result['stock_level'],
@@ -136,9 +142,9 @@ class ProductsService(BaseService):
       logging.error(f"Error retrieving product with code {product_code}: {e}")
       raise ValueError(f"Error retrieving product: {e}")
     
-  def retrieve_similar_products(self, query_embedding: List[float], top_k: int = 5) -> List[Product]:
+  def retrieve_similar_products_by_text(self, query_embedding: List[float], top_k: int = 5) -> List[Product]:
     query = """
-        SELECT id, code, name, description, embedding, price, image_url, stock_level, is_active, embedding <=> %s AS distance
+        SELECT id, code, name, description, text_embedding, image_embedding, price, image_url, stock_level, is_active, text_embedding <=> %s AS distance
         FROM products
         WHERE is_active = TRUE
         ORDER BY distance
@@ -150,13 +156,54 @@ class ProductsService(BaseService):
       if results:
         products = []
         for result in results:
-          embedding = [float(x) for x in result['embedding'][1:-1].split(',')] if isinstance(result['embedding'], str) else result['embedding']
+          text_embedding = [float(x) for x in result['text_embedding'][1:-1].split(',')] if isinstance(result['text_embedding'], str) else result['text_embedding']
+          image_embedding = [float(x) for x in result['image_embedding'][1:-1].split(',')] if isinstance(result['image_embedding'], str) else result['image_embedding']
           product = Product(
             id=result['id'],
             code=result['code'],
             name=result['name'],
             description=result['description'],
-            embedding=embedding,
+            text_embedding=text_embedding,
+            image_embedding=image_embedding,
+            price=result['price'],
+            image_url=result['image_url'],
+            stock_level=result['stock_level'],
+            is_active=result['is_active']
+          )
+          setattr(product, 'semantic_distance', result['distance'])
+          products.append(product)
+        logging.info(f"Retrieved {len(products)} similar products.")
+        return products
+      else:
+        logging.info("No similar products found.")
+        return []
+    except Exception as e:
+      logging.error(f"Error retrieving similar products: {e}")
+      raise ValueError(f"Error retrieving similar products: {e}")
+    
+  def retrieve_similar_products_by_image(self, query_embedding: List[float], top_k: int = 3) -> List[Product]:
+    query = """
+        SELECT id, code, name, description, text_embedding, image_embedding, price, image_url, stock_level, is_active, image_embedding <=> %s AS distance
+        FROM products
+        WHERE is_active = TRUE
+        ORDER BY distance
+        LIMIT %s
+    """
+    embedding_str = f"[{ ','.join(map(str, query_embedding)) }]"
+    try:
+      results = self.db_client.execute_query(query, (embedding_str, top_k), fetch_all=True)
+      if results:
+        products = []
+        for result in results:
+          text_embedding = [float(x) for x in result['text_embedding'][1:-1].split(',')] if isinstance(result['text_embedding'], str) else result['text_embedding']
+          image_embedding = [float(x) for x in result['image_embedding'][1:-1].split(',')] if isinstance(result['image_embedding'], str) else result['image_embedding']
+          product = Product(
+            id=result['id'],
+            code=result['code'],
+            name=result['name'],
+            description=result['description'],
+            text_embedding=text_embedding,
+            image_embedding=image_embedding,
             price=result['price'],
             image_url=result['image_url'],
             stock_level=result['stock_level'],
@@ -176,9 +223,9 @@ class ProductsService(BaseService):
   def retrieve_text_search_products(self, query_text: str, top_k: int = 5) -> List[Product]:
     sanitized_query_text = self._sanitize_string_for_db(query_text)
     query = """
-        SELECT id, code, name, description, embedding, price, image_url, stock_level, is_active, paradedb.score(id) AS rank
+        SELECT id, code, name, description, text_embedding, image_embedding, price, image_url, stock_level, is_active, paradedb.score(id) AS rank
         FROM products
-        WHERE id @@@ paradedb.with_index('products_search_idx', paradedb.match('description', %s)) AND is_active = TRUE
+        WHERE id @@@ paradedb.with_index('products_search_text_idx', paradedb.match('description', %s)) AND is_active = TRUE
         ORDER BY rank DESC
         LIMIT %s 
     """
@@ -187,13 +234,15 @@ class ProductsService(BaseService):
       if results:
         products = []
         for result in results:
-          embedding = [float(x) for x in result['embedding'][1:-1].split(',')] if isinstance(result['embedding'], str) else result['embedding']
+          text_embedding = [float(x) for x in result['text_embedding'][1:-1].split(',')] if isinstance(result['text_embedding'], str) else result['text_embedding']
+          image_embedding = [float(x) for x in result['image_embedding'][1:-1].split(',')] if isinstance(result['image_embedding'], str) else result['image_embedding']
           product = Product(
             id=result['id'],
             code=result['code'],
             name=result['name'],
             description=result['description'],
-            embedding=embedding,
+            text_embedding=text_embedding,
+            image_embedding=image_embedding,
             price=result['price'],
             image_url=result['image_url'],
             stock_level=result['stock_level'],
@@ -211,7 +260,7 @@ class ProductsService(BaseService):
       raise ValueError(f"Error retrieving text search products: {e}")
     
   def retrieve_hybrid_products(self, query_embedding: List[float], query_text: str, top_k: int = 5) -> List[Product]:
-    semantic_results = self.retrieve_similar_products(query_embedding, top_k=top_k * 2)
+    semantic_results = self.retrieve_similar_products_by_text(query_embedding, top_k=top_k * 2)
     text_results = self.retrieve_text_search_products(query_text, top_k=top_k * 2)
     
     reranked_scores: Dict[int, float] = {}

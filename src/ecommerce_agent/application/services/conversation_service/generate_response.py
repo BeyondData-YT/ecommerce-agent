@@ -32,7 +32,7 @@ else:
 
 async def generate_response(
   messages: Union[str, list[dict[str, Any]]],
-  workflow: Literal["conversation", "image", "audio"],
+  workflow: Literal["conversation", "audio", "image"],
   thread_id: str,
   user_id: int
   ) -> tuple[str, ConversationState]:
@@ -41,7 +41,7 @@ async def generate_response(
 
   Args:
     messages (Union[str, list[dict[str, Any]]]): The input messages, either a single string or a list of message dictionaries.
-    workflow (Literal["conversation", "image", "audio"]): The workflow to use for the conversation.
+    workflow (Literal["conversation", "audio", "image"]): The workflow to use for the conversation.
     thread_id (str): The thread ID for the conversation to identify the session.
     user_id (int): The user ID for the conversation to identify the user.
 
@@ -60,6 +60,7 @@ async def generate_response(
     ):
       graph = graph.compile(checkpointer=checkpointer, store=store)
       logging.info("Graph workflow compiled successfully.")
+
       output_state = await graph.ainvoke(
         input={
           "messages": __format_messages(messages=messages),
@@ -86,7 +87,7 @@ async def generate_response(
   
 async def get_streaming_response(
   messages: Union[str, list[dict[str, Any]]],
-  workflow: Literal["conversation", "image", "audio"],
+  workflow: Literal["conversation", "audio", "image"],
   thread_id: str,
   user_id: int
 ) -> AsyncGenerator[str, None]:
@@ -95,7 +96,7 @@ async def get_streaming_response(
 
   Args:
     messages (Union[str, list[dict[str, Any]]]): The input messages, either a single string or a list of message dictionaries.
-    workflow (Literal["conversation", "image", "audio"]): The workflow to use for the conversation.
+    workflow (Literal["conversation", "audio", "image"]): The workflow to use for the conversation.
     thread_id (str): The thread ID for the conversation to identify the session.
     user_id (int): The user ID for the conversation to identify the user.
   Yields:
@@ -110,7 +111,7 @@ async def get_streaming_response(
       AsyncPostgresStore.from_conn_string(
         conn_string=settings.POSTGRES_URI
       ) as store
-    ):
+    ):      
       graph = graph.compile(checkpointer=checkpointer, store=store)
       logging.info("Graph workflow compiled successfully for streaming.")
       async for chunk in graph.astream(

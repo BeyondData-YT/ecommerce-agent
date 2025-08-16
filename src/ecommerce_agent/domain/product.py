@@ -6,7 +6,8 @@ class Product(BaseModel):
   code: Optional[str] = None
   name: Optional[str] = None
   description: Optional[str] = None
-  embedding: Optional[List[float]] = None
+  text_embedding: Optional[List[float]] = None
+  image_embedding: Optional[List[float]] = None
   price: Optional[float] = None
   stock_level: Optional[int] = None
   image_url: Optional[str] = None

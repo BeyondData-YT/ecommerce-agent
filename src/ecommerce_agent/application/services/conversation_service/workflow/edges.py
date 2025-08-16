@@ -4,12 +4,12 @@ from langgraph.graph import END
 
 def select_workflow(
     state: ConversationState,
-) -> Literal[ "audio_node", "__end__"]:
+) -> Literal[ "audio_node", "image_node", "__end__"]:
     workflow = state["workflow"]
     
     if workflow == "audio":
         return "audio_node"
-    # elif workflow == "image":
-    #     return "image_node"
+    elif workflow == "image":
+        return "image_node"
     else:
         return END

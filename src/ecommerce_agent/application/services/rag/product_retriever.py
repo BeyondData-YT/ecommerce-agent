@@ -3,6 +3,7 @@ from ecommerce_agent.application.services.products_service import ProductsServic
 from ecommerce_agent.application.services.rag.embeddings import EmbeddingsService
 import logging
 
+
 class ProductRetrieverService:
   """
   Service for retrieving products from the knowledge base using various search strategies.
@@ -12,10 +13,9 @@ class ProductRetrieverService:
     """
     Initializes the RetrieverService with instances of EmbeddingsService and ProductsService.
     """
-    self.embeddings_service = EmbeddingsService()
     self.products_service = ProductsService()
     
-  def retrieve_similar_products(self, query: str, top_k: int = 5) -> list[Product]:
+  async def retrieve_similar_text_products(self, query: str, top_k: int = 5) -> list[Product]:
     """
     Retrieves products based on semantic similarity to the given query.
 
@@ -26,12 +26,30 @@ class ProductRetrieverService:
     Returns:
       list[Product]: A list of Product objects semantically similar to the query.
     """
+    self.embeddings_service = await EmbeddingsService.get_instance()
     logging.info(f"Generating embedding for semantic search query: '{query}'.")
     query_embedding = self.embeddings_service.embed_query(query)
     logging.info(f"Retrieving {top_k} similar products semantically.")
-    return self.products_service.retrieve_similar_products(query_embedding, top_k)
+    return self.products_service.retrieve_similar_products_by_text(query_embedding, top_k)
   
-  def retrieve_text_search_products(self, query: str, top_k: int = 5) -> list[Product]:
+  async def retrieve_similar_image_products(self, image_url: str, top_k: int = 5) -> list[Product]:
+    """
+    Retrieves products based on image similarity to the given query.
+
+    Args:
+      image (bytes): The image for image search.
+      top_k (int): The maximum number of similar products to retrieve. Defaults to 5.
+
+    Returns:
+      list[Product]: A list of Product objects image-similar to the query.
+    """
+    self.embeddings_service = await EmbeddingsService.get_instance()
+    logging.info("Generating embedding for image search query.")
+    query_embedding = self.embeddings_service.embed_image(image_url)
+    logging.info(f"Retrieving {top_k} similar products image-wise.")
+    return self.products_service.retrieve_similar_products_by_image(query_embedding, top_k)
+  
+  async def retrieve_text_search_products(self, query: str, top_k: int = 5) -> list[Product]:
     """
     Retrieves products based on text similarity to the given query.
 
@@ -42,11 +60,12 @@ class ProductRetrieverService:
     Returns:
       list[Product]: A list of Product objects text-similar to the query.
     """
+    self.embeddings_service = await EmbeddingsService.get_instance()
     logging.info(f"Initiating text search for query: '{query}'.")
     logging.info(f"Retrieving {top_k} products via text search.")
     return self.products_service.retrieve_text_search_products(query, top_k)
   
-  def retrieve_hybrid_products(self, query: str, top_k: int = 5) -> list[Product]:
+  async def retrieve_hybrid_products(self, query: str, top_k: int = 5) -> list[Product]:
     """
     Retrieves products using a hybrid search approach (semantic + text) and merges results.
 
@@ -56,6 +75,7 @@ class ProductRetrieverService:
     Returns:
       list[Product]: A list of Product objects from the hybrid search.
     """
+    self.embeddings_service = await EmbeddingsService.get_instance()
     logging.info(f"Generating embedding for hybrid search query: '{query}'.")
     query_embedding = self.embeddings_service.embed_query(query)
     logging.info(f"Retrieving {top_k} hybrid products.")

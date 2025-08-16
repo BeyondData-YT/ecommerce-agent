@@ -4,7 +4,8 @@ from langchain_groq import ChatGroq
 
 from ecommerce_agent.application.services.conversation_service.workflow.tools import tools 
 from ecommerce_agent.config import settings
-from ecommerce_agent.domain.prompt import SYSTEM_PROMPT
+from ecommerce_agent.domain.image_node_output import ImageResponseList
+from ecommerce_agent.domain.prompts import SYSTEM_PROMPT
 import logging
 
 def get_llm(temperature: float = 0.0, model_name:str = settings.GROQ_LLM_MODEL) -> ChatGroq:
@@ -25,7 +26,7 @@ def get_llm(temperature: float = 0.0, model_name:str = settings.GROQ_LLM_MODEL) 
     api_key=settings.GROQ_API_KEY
   )
 
-def get_response_chain() -> Runnable:
+def get_response_chain(system_prompt: str = SYSTEM_PROMPT.prompt, with_structured_output: bool = False, **kwargs) -> Runnable:
   """
   Creates and returns a LangChain response chain.
 
@@ -34,11 +35,13 @@ def get_response_chain() -> Runnable:
   Returns:
     Runnable: A LangChain prompt-to-model runnable.
   """
-  llm = get_llm()
+  llm = get_llm(**kwargs)
   logging.info("LLM obtained")
   llm = llm.bind_tools(tools)
+  if with_structured_output:
+    llm = llm.with_structured_output(ImageResponseList)
   prompt = ChatPromptTemplate.from_messages([
-    ("system", SYSTEM_PROMPT.prompt),
+    ("system", system_prompt),
     MessagesPlaceholder(variable_name="messages"),
     
   ],
@@ -46,8 +49,3 @@ def get_response_chain() -> Runnable:
   )
   logging.info("Prompt obtained")
   return prompt | llm
-
-
-
-
-
