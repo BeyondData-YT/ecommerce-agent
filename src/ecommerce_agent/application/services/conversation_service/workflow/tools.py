@@ -32,13 +32,13 @@ class DocumentRetrieverTool(BaseTool):
     """
     return "\n\n".join([doc.window_content for doc in docs])
   
-  def _run(self, query: str, top_k: int = 5) -> str:
+  def _run(self, query: str, top_k: int = 3) -> str:
     """
     Retrieves documents from the database based on a query.
     """
     return asyncio.run(self._arun(query, top_k))
   
-  async def _arun(self, query: str, top_k: int = 5) -> str:
+  async def _arun(self, query: str, top_k: int = 3) -> str:
     """
     Retrieves documents from the database based on a query.
     
@@ -72,13 +72,13 @@ class TextProductRetrieverTool(BaseTool):
     """
     return "\n\n".join([(product.name + " - " + product.description) for product in products])
 
-  def _run(self, query: str, top_k: int = 5) -> str:
+  def _run(self, query: str, top_k: int = 3) -> str:
     """
     Retrieves products from the database based on a query.
     """
     return asyncio.run(self._arun(query, top_k))
 
-  async def _arun(self, query: str, top_k: int = 5) -> str:
+  async def _arun(self, query: str, top_k: int = 3) -> str:
     """
     Retrieves products from the database based on a query.
     

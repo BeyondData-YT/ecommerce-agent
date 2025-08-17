@@ -7,6 +7,7 @@ import asyncio
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from langchain_core.messages import HumanMessage, AIMessage
 
 from pydantic import BaseModel
 
@@ -130,25 +131,33 @@ async def telegram_webhook(request: Request):
     file = await bot_instance.get_file(photo_id)
     image_url = file.file_path
     
-    # thread_id = await session_service.get_or_create_session(user_id)
-    thread_id = "5"
+    thread_id = await session_service.get_or_create_session(user_id)
+    # thread_id = "9"
     logging.info(f"Thread ID: {thread_id} \n User ID: {user_id}")
     
     input_message = f"The user has sent a photo with the following caption: {caption}. The image url is: {image_url}" if caption else f"The user has sent a photo. The image url is: {image_url}"
     
     logging.info("Generating response...")
-    agent_response_obj, _ = await generate_response(input_message, workflow="image", thread_id=thread_id, user_id=user_id)
+    agent_response_obj, state = await generate_response(input_message, workflow="image", thread_id=thread_id, user_id=user_id)
     
-    try:
-      agent_response_obj = json.loads(agent_response_obj)
-      for image_response in agent_response_obj.image_responses:
-        await bot_instance.send_photo(chat_id=chat_id, photo=image_response.image_url, caption=image_response.caption)
-    except Exception as e:
-      logging.error(f"Error sending image response: {e}")
-      return {"status": "error", "message": "Error sending image response"}
-    
+    for message in reversed(state["messages"]):
+      if isinstance(message, HumanMessage):
+        logging.info(f"Human message received: {message.content}")
+        try:
+          import ast
+          image_response_list = ast.literal_eval(message.content)
+          logging.info(f"Image response list: {image_response_list}")
+          for image_response in image_response_list:
+            logging.info(f"Sending image response to Telegram: {image_response}")
+            await bot_instance.send_photo(chat_id=chat_id, photo=image_response["image_url"], caption=image_response["caption"])
+            logging.info(f"Image response sent to Telegram")
+          return {"status": "ok"}
+        except Exception as e:
+          logging.error(f"Error sending image response: {e}")
+          return {"status": "error", "message": "Error sending image response"}
+      
+    await bot_instance.send_message(chat_id=chat_id, text=str(agent_response_obj))
     logging.info("Response sent to Telegram")
-
     return {"status": "ok"}
     
   

@@ -55,5 +55,6 @@ class Settings(BaseSettings):
 
   # --- Summary Configuration ---
   SUMMARY_MESSAGE_COUNT: int = 5
+  SUMMARY_MESSAGE_COUNT_TO_KEEP: int = 3
 
 settings = Settings()

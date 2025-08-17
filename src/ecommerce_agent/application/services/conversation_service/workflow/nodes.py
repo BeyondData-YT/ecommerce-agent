@@ -1,6 +1,8 @@
 from typing import Any
+import re
+import json
 from langgraph.prebuilt import ToolNode
-from langchain_core.messages import ToolMessage, RemoveMessage
+from langchain_core.messages import ToolMessage, HumanMessage
 from ecommerce_agent.application.services.conversation_service.workflow.chains import get_response_chain, get_conversation_summary_chain
 from ecommerce_agent.application.services.conversation_service.workflow.tools import tools
 from ecommerce_agent.application.services.conversation_service.workflow.state import ConversationState
@@ -53,22 +55,39 @@ async def audio_node(state: ConversationState) -> dict[str, Any]:
     return {}
   
 async def image_node(state: ConversationState) -> dict[str, Any]:
-  last_message = state['messages'][-1]
-  tool_message = state['messages'][-2]
-  if isinstance(tool_message, ToolMessage):
-    tool_result = tool_message.content
-    
-    input_message = f"The result of the tool call is: {tool_result}. The AI Agent response is: {last_message.content}"
-    
-    response_chain = get_response_chain(system_prompt=IMAGE_PROMPT.prompt, with_structured_output=True)
-    logging.info("Response chain successfully obtained for image node.")
-    response = await response_chain.ainvoke(
-      {
-        "messages": [input_message]
-      }
-    )
-    logging.info("Response chain invoked for image node.")
-    return {"messages": str(response)}
+  for message in state['messages']:
+    if isinstance(message, ToolMessage):
+      if message.name == "image_product_retriever":
+        tool_result = message.content
+        agent_response = state['messages'][-1].content
+        
+        input_message = f"The result of the tool call is: {tool_result}. The AI Agent response is: {agent_response}"
+        
+        response_chain = get_response_chain(system_prompt=IMAGE_PROMPT.prompt, with_structured_output=True)
+        logging.info("Response chain successfully obtained for image node.")
+        response = await response_chain.ainvoke(
+          {
+            "messages": [input_message]
+          }
+        )
+        logging.info("Response chain invoked for image node.")
+
+        response_str = str(response)
+        logging.info(f"Response string: {response_str}")
+        image_urls = re.findall(r"image_url='([^']*)'", response_str)
+        captions = re.findall(r"caption='((?:[^'\\]|\\.)*)'", response_str)
+        product_names = re.findall(r"product_name='((?:[^'\\]|\\.)*)'", response_str)
+
+        image_responses = [
+            {
+                "image_url": url,
+                "caption": cap,
+                "product_name": name
+            }
+            for url, cap, name in zip(image_urls, captions, product_names)
+        ]
+
+        return {"messages": [HumanMessage(content=str(image_responses))]}
   return {}
 
 async def summary_node(state: ConversationState) -> dict[str, Any]:
@@ -82,11 +101,8 @@ async def summary_node(state: ConversationState) -> dict[str, Any]:
     }
   )
   logging.info("Summary chain invoked for summary node.")
-  delete_messages = [
-    RemoveMessage(id=message.id)
-    for message in state['messages'][:-settings.SUMMARY_MESSAGE_COUNT]
-  ]
-  return {"summary": summary.content, "messages": delete_messages}
+  messages_to_keep = state['messages'][-settings.SUMMARY_MESSAGE_COUNT_TO_KEEP:]
+  return {"summary": summary.content, "messages": messages_to_keep}
 
 async def connector_node(state: ConversationState):
   return {}

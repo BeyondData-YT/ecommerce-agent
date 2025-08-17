@@ -15,7 +15,7 @@ class ProductRetrieverService:
     """
     self.products_service = ProductsService()
     
-  async def retrieve_similar_text_products(self, query: str, top_k: int = 5) -> list[Product]:
+  async def retrieve_similar_text_products(self, query: str, top_k: int = 3) -> list[Product]:
     """
     Retrieves products based on semantic similarity to the given query.
 
@@ -32,7 +32,7 @@ class ProductRetrieverService:
     logging.info(f"Retrieving {top_k} similar products semantically.")
     return self.products_service.retrieve_similar_products_by_text(query_embedding, top_k)
   
-  async def retrieve_similar_image_products(self, image_url: str, top_k: int = 5) -> list[Product]:
+  async def retrieve_similar_image_products(self, image_url: str, top_k: int = 3) -> list[Product]:
     """
     Retrieves products based on image similarity to the given query.
 
@@ -49,7 +49,7 @@ class ProductRetrieverService:
     logging.info(f"Retrieving {top_k} similar products image-wise.")
     return self.products_service.retrieve_similar_products_by_image(query_embedding, top_k)
   
-  async def retrieve_text_search_products(self, query: str, top_k: int = 5) -> list[Product]:
+  async def retrieve_text_search_products(self, query: str, top_k: int = 3) -> list[Product]:
     """
     Retrieves products based on text similarity to the given query.
 
@@ -65,7 +65,7 @@ class ProductRetrieverService:
     logging.info(f"Retrieving {top_k} products via text search.")
     return self.products_service.retrieve_text_search_products(query, top_k)
   
-  async def retrieve_hybrid_products(self, query: str, top_k: int = 5) -> list[Product]:
+  async def retrieve_hybrid_products(self, query: str, top_k: int = 3) -> list[Product]:
     """
     Retrieves products using a hybrid search approach (semantic + text) and merges results.
 

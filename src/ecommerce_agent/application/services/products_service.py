@@ -220,7 +220,7 @@ class ProductsService(BaseService):
       logging.error(f"Error retrieving similar products: {e}")
       raise ValueError(f"Error retrieving similar products: {e}")
     
-  def retrieve_text_search_products(self, query_text: str, top_k: int = 5) -> List[Product]:
+  def retrieve_text_search_products(self, query_text: str, top_k: int = 3) -> List[Product]:
     sanitized_query_text = self._sanitize_string_for_db(query_text)
     query = """
         SELECT id, code, name, description, text_embedding, image_embedding, price, image_url, stock_level, is_active, paradedb.score(id) AS rank
@@ -259,7 +259,7 @@ class ProductsService(BaseService):
       logging.error(f"Error retrieving text search products: {e}")
       raise ValueError(f"Error retrieving text search products: {e}")
     
-  def retrieve_hybrid_products(self, query_embedding: List[float], query_text: str, top_k: int = 5) -> List[Product]:
+  def retrieve_hybrid_products(self, query_embedding: List[float], query_text: str, top_k: int = 3) -> List[Product]:
     semantic_results = self.retrieve_similar_products_by_text(query_embedding, top_k=top_k * 2)
     text_results = self.retrieve_text_search_products(query_text, top_k=top_k * 2)
     
