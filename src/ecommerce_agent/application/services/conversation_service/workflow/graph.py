@@ -1,5 +1,5 @@
-from ecommerce_agent.application.services.conversation_service.workflow.nodes import conversation_node, tools_node, audio_node, connector_node, image_node
-from ecommerce_agent.application.services.conversation_service.workflow.edges import select_workflow
+from ecommerce_agent.application.services.conversation_service.workflow.nodes import conversation_node, tools_node, audio_node, connector_node, image_node, summary_node
+from ecommerce_agent.application.services.conversation_service.workflow.edges import select_workflow, should_summarize
 from ecommerce_agent.application.services.conversation_service.workflow.state import ConversationState
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import tools_condition
@@ -23,7 +23,7 @@ def create_graph_workflow() -> StateGraph:
   graph.add_node("audio_node", audio_node)
   graph.add_node("image_node", image_node)
   graph.add_node("connector_node", connector_node)
-  
+  graph.add_node("summary_node", summary_node)
   
   graph.add_edge(START, "conversation_node")
   graph.add_conditional_edges(
@@ -39,7 +39,14 @@ def create_graph_workflow() -> StateGraph:
     "connector_node",
     select_workflow
   )
-  graph.add_edge("audio_node", END)
-  graph.add_edge("image_node", END)
+  graph.add_conditional_edges(
+    "audio_node",
+    should_summarize
+  )
+  graph.add_conditional_edges(
+    "image_node",
+    should_summarize
+  )
+  graph.add_edge("summary_node", END)
   logging.info("Graph workflow created successfully.")
   return graph

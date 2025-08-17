@@ -1,10 +1,11 @@
 from typing import Any
 from langgraph.prebuilt import ToolNode
-from langchain_core.messages import ToolMessage
-from ecommerce_agent.application.services.conversation_service.workflow.chains import get_response_chain
+from langchain_core.messages import ToolMessage, RemoveMessage
+from ecommerce_agent.application.services.conversation_service.workflow.chains import get_response_chain, get_conversation_summary_chain
 from ecommerce_agent.application.services.conversation_service.workflow.tools import tools
 from ecommerce_agent.application.services.conversation_service.workflow.state import ConversationState
 from ecommerce_agent.application.services.speech_service.text_to_speech import TextToSpeechService
+from ecommerce_agent.config import settings
 from ecommerce_agent.domain.prompts import IMAGE_PROMPT
 import logging
 
@@ -21,10 +22,12 @@ async def conversation_node(state: ConversationState) -> dict[str, Any]:
     dict: A dictionary containing the updated messages from the response chain.
   """
   response_chain = get_response_chain()
+  summary = state.get("summary", "")
   logging.info("Response chain successfully obtained for conversation node.")
   response = await response_chain.ainvoke(
     {
-      "messages": state['messages']
+      "messages": state['messages'],
+      "summary": summary
     }
   )
   logging.info("Response chain invoked for conversation node.")
@@ -67,6 +70,23 @@ async def image_node(state: ConversationState) -> dict[str, Any]:
     logging.info("Response chain invoked for image node.")
     return {"messages": str(response)}
   return {}
+
+async def summary_node(state: ConversationState) -> dict[str, Any]:
+  summary = state.get("summary", "")
+  summary_chain = get_conversation_summary_chain(summary, model_name=settings.GROQ_LLM_MODEL_CONTEXT_SUMMARY)
+  logging.info("Summary chain successfully obtained for summary node.")
+  summary = await summary_chain.ainvoke(
+    {
+      "messages": state['messages'],
+      "summary": summary
+    }
+  )
+  logging.info("Summary chain invoked for summary node.")
+  delete_messages = [
+    RemoveMessage(id=message.id)
+    for message in state['messages'][:-settings.SUMMARY_MESSAGE_COUNT]
+  ]
+  return {"summary": summary.content, "messages": delete_messages}
 
 async def connector_node(state: ConversationState):
   return {}

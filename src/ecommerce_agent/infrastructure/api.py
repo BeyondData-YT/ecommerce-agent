@@ -142,8 +142,7 @@ async def telegram_webhook(request: Request):
     try:
       agent_response_obj = json.loads(agent_response_obj)
       for image_response in agent_response_obj.image_responses:
-        await bot_instance.send_photo(chat_id=chat_id, photo=image_response.image_url)
-        await bot_instance.send_message(chat_id=chat_id, text=image_response.caption)
+        await bot_instance.send_photo(chat_id=chat_id, photo=image_response.image_url, caption=image_response.caption)
     except Exception as e:
       logging.error(f"Error sending image response: {e}")
       return {"status": "error", "message": "Error sending image response"}

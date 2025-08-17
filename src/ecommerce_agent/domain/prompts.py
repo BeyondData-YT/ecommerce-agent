@@ -24,3 +24,5 @@ class Prompt:
 
 SYSTEM_PROMPT = Prompt(name="default_prompt")
 IMAGE_PROMPT = Prompt(name="image_prompt")
+SUMMARY_PROMPT = Prompt(name="summary_prompt")
+EXTENDED_SYSTEM_PROMPT = Prompt(name="extended_system_prompt")
