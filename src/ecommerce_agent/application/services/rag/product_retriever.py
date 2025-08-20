@@ -38,7 +38,7 @@ class ProductRetrieverService:
 
     Args:
       image (bytes): The image for image search.
-      top_k (int): The maximum number of similar products to retrieve. Defaults to 5.
+      top_k (int): The maximum number of similar products to retrieve. Defaults to 3.
 
     Returns:
       list[Product]: A list of Product objects image-similar to the query.
@@ -55,7 +55,7 @@ class ProductRetrieverService:
 
     Args:
       query (str): The query string for text search.
-      top_k (int): The maximum number of text-similar products to retrieve. Defaults to 5.
+      top_k (int): The maximum number of text-similar products to retrieve. Defaults to 3.
 
     Returns:
       list[Product]: A list of Product objects text-similar to the query.
@@ -71,7 +71,7 @@ class ProductRetrieverService:
 
     Args:
       query (str): The query string for hybrid search.
-      top_k (int): The maximum number of hybrid products to retrieve. Defaults to 5.'
+      top_k (int): The maximum number of hybrid products to retrieve. Defaults to 3.
     Returns:
       list[Product]: A list of Product objects from the hybrid search.
     """

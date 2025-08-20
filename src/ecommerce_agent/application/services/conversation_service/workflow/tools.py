@@ -2,11 +2,14 @@ from langchain_core.tools import BaseTool
 from langchain_core.tools.base import ArgsSchema
 from ecommerce_agent.application.services.rag.document_retriever import DocumentRetrieverService
 from ecommerce_agent.application.services.rag.product_retriever import ProductRetrieverService  
+from ecommerce_agent.application.services.memory import store_memory
 from ecommerce_agent.domain.retriever_input import TextRetrieverInput, ImageRetrieverInput
 from ecommerce_agent.domain.document import Document
 from ecommerce_agent.domain.product import Product
+from ecommerce_agent.domain.memory import MemoryInput
 import logging
 import asyncio
+from typing import Tuple
 
 class DocumentRetrieverTool(BaseTool):
   """
@@ -44,7 +47,7 @@ class DocumentRetrieverTool(BaseTool):
     
     Args:
       query (str): The query string to retrieve documents.
-      top_k (int): The maximum number of documents to retrieve. Defaults to 5.
+      top_k (int): The maximum number of documents to retrieve. Defaults to 3.
       
     Returns:
       str: A formatted string containing the content of the retrieved documents.
@@ -84,7 +87,7 @@ class TextProductRetrieverTool(BaseTool):
     
     Args:
       query (str): The query string to retrieve products.
-      top_k (int): The maximum number of products to retrieve. Defaults to 5.
+      top_k (int): The maximum number of products to retrieve. Defaults to 3.
     """
     logging.info(f"Initiating product retrieval with query: '{query}'.")
     products = await ProductRetrieverService().retrieve_hybrid_products(query, top_k)
@@ -121,4 +124,26 @@ class ImageProductRetrieverTool(BaseTool):
     logging.info(f"Product retrieval completed. Found {len(products)} products.")
     return self._format_products(products)
 
-tools = [DocumentRetrieverTool(), TextProductRetrieverTool(), ImageProductRetrieverTool()]
+class MemoryTool(BaseTool):
+  """
+  A tool for storing and retrieving memories.
+  """
+  name:str = "store_memory"
+  description:str = "Store memories in the database"
+  args_schema:ArgsSchema = MemoryInput
+  return_direct:bool = True
+  
+  def _run(self, memory: dict[str, str], namespace_for_memory: Tuple[str, str]) -> str:
+    """
+    Stores memories in the database.
+    """
+    return asyncio.run(self._arun(memory, namespace_for_memory))
+  
+  async def _arun(self, memory: dict[str, str], namespace_for_memory: Tuple[str, str]) -> str:
+    """
+    Stores memories in the database.
+    """
+    await store_memory(namespace_for_memory, memory)
+    return "Memory stored successfully"
+
+tools = [DocumentRetrieverTool(), TextProductRetrieverTool(), ImageProductRetrieverTool(), MemoryTool()]

@@ -73,22 +73,88 @@ async def image_node(state: ConversationState) -> dict[str, Any]:
         logging.info("Response chain invoked for image node.")
 
         response_str = str(response)
-        logging.info(f"Response string: {response_str}")
-        image_urls = re.findall(r"image_url='([^']*)'", response_str)
-        captions = re.findall(r"caption='((?:[^'\\]|\\.)*)'", response_str)
-        product_names = re.findall(r"product_name='((?:[^'\\]|\\.)*)'", response_str)
-
-        image_responses = [
-            {
-                "image_url": url,
-                "caption": cap,
-                "product_name": name
-            }
-            for url, cap, name in zip(image_urls, captions, product_names)
-        ]
+        image_responses = handle_mixed_input(response_str)
 
         return {"messages": [HumanMessage(content=str(image_responses))]}
   return {}
+
+def clean_and_parse_response_string(response_str):
+    """
+    Cleans and parses a string that contains ImageResponse objects.
+      
+    Args:
+        response_str (str): The string to clean and parse.
+        
+    Returns:
+        list: A list of dictionaries with the parsed data.
+    """
+    logging.basicConfig(level=logging.INFO)
+
+    cleaned_str = re.sub(r'image_responses=\[|ImageResponse\(|\)\]', '', response_str).strip()
+
+    
+    cleaned_str = cleaned_str.replace('\\"', '"').replace("\\'", "'")
+    
+    
+    regex = re.compile(
+        r"ImageResponse\(image_url='(.*?)', caption='(.*?)', product_name='(.*?)'\)"
+    )
+    matches = regex.findall(response_str)
+    
+    if not matches:
+        regex_alt = re.compile(
+            r'ImageResponse\(image_url="(.*?)", caption="(.*?)", product_name="(.*?)"\)'
+        )
+        matches = regex_alt.findall(response_str)
+
+    if not matches:
+        logging.error("No matches found in the response string.")
+        return []
+        
+    parsed_list = []
+    for match in matches:
+        image_url, caption, product_name = match
+        parsed_list.append({
+            "image_url": image_url,
+            "caption": caption,
+            "product_name": product_name
+        })
+
+    return parsed_list
+
+def handle_mixed_input(input_str):
+    """
+    Handles inputs that can be either the ImageResponse string or the list of dictionaries.
+    """
+    if input_str.strip().startswith('['):
+        try:
+            cleaned_str = input_str.replace("'", '"').replace('"', '\\"').replace('\\\\"', '\\"')
+            
+            # Try to parse as a list of dictionaries first
+            pattern = re.compile(r"\{'image_url': '(.*?)', 'caption': '(.*?)', 'product_name': '(.*?)'\}")
+            matches = pattern.findall(input_str)
+            
+            if not matches:
+                # If the simple quotes pattern fails, try double quotes
+                pattern = re.compile(r'\{"image_url": "(.*?)", "caption": "(.*?)", "product_name": "(.*?)"\}')
+                matches = pattern.findall(input_str)
+
+            if matches:
+                result = []
+                for match in matches:
+                    image_url, caption, product_name = match
+                    result.append({
+                        "image_url": image_url,
+                        "caption": caption.replace('\\"', '"').replace("'", '"'),
+                        "product_name": product_name
+                    })
+                return result
+            
+        except Exception as e:
+            logging.error(f"Error trying to parse as list of dictionaries: {e}")
+    
+    # If the string doesn't start with '[{' or the first attempt fails, use the ImageResponse parser
+    return clean_and_parse_response_string(input_str)
 
 async def summary_node(state: ConversationState) -> dict[str, Any]:
   summary = state.get("summary", "")
@@ -103,6 +169,9 @@ async def summary_node(state: ConversationState) -> dict[str, Any]:
   logging.info("Summary chain invoked for summary node.")
   messages_to_keep = state['messages'][-settings.SUMMARY_MESSAGE_COUNT_TO_KEEP:]
   return {"summary": summary.content, "messages": messages_to_keep}
+
+async def memory_node(state: ConversationState) -> dict[str, Any]:
+  return {}
 
 async def connector_node(state: ConversationState):
   return {}

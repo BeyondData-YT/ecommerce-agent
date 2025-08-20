@@ -12,6 +12,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from pydantic import BaseModel
 
 from ecommerce_agent.application.services.conversation_service.generate_response import generate_response
+from ecommerce_agent.application.services.conversation_service.workflow.nodes import handle_mixed_input
 from ecommerce_agent.application.services.speech_service.speech_to_text import SpeechToTextService
 from ecommerce_agent.application.services.session import SessionService
 from ecommerce_agent.infrastructure.database.postgresql.postgres_client import db_client
@@ -144,8 +145,7 @@ async def telegram_webhook(request: Request):
       if isinstance(message, HumanMessage):
         logging.info(f"Human message received: {message.content}")
         try:
-          import ast
-          image_response_list = ast.literal_eval(message.content)
+          image_response_list = handle_mixed_input(message.content)
           logging.info(f"Image response list: {image_response_list}")
           for image_response in image_response_list:
             logging.info(f"Sending image response to Telegram: {image_response}")
