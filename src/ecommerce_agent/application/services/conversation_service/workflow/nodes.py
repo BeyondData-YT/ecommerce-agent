@@ -3,8 +3,8 @@ import re
 import json
 from langgraph.prebuilt import ToolNode
 from langchain_core.messages import ToolMessage, HumanMessage
-from ecommerce_agent.application.services.conversation_service.workflow.chains import get_response_chain, get_conversation_summary_chain
-from ecommerce_agent.application.services.conversation_service.workflow.tools import tools
+from ecommerce_agent.application.services.conversation_service.workflow.chains import get_response_chain, get_conversation_summary_chain, get_memory_chain
+from ecommerce_agent.application.services.conversation_service.workflow.tools import tools, memory_tools
 from ecommerce_agent.application.services.conversation_service.workflow.state import ConversationState
 from ecommerce_agent.application.services.speech_service.text_to_speech import TextToSpeechService
 from ecommerce_agent.config import settings
@@ -12,6 +12,7 @@ from ecommerce_agent.domain.prompts import IMAGE_PROMPT
 import logging
 
 tools_node = ToolNode(tools)
+memory_tools_node = ToolNode(memory_tools)
 
 async def conversation_node(state: ConversationState) -> dict[str, Any]:
   """
@@ -171,7 +172,15 @@ async def summary_node(state: ConversationState) -> dict[str, Any]:
   return {"summary": summary.content, "messages": messages_to_keep}
 
 async def memory_node(state: ConversationState) -> dict[str, Any]:
-  return {}
+  memory_chain = get_memory_chain()
+  logging.info("Memory chain successfully obtained for memory node.")
+  response = await memory_chain.ainvoke(
+    {
+      "messages": state['messages']
+    }
+  )
+  logging.info("Memory chain invoked for memory node.")
+  return {"messages": response}
 
 async def connector_node(state: ConversationState):
   return {}

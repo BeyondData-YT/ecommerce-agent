@@ -2,10 +2,10 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import Runnable
 from langchain_groq import ChatGroq
 
-from ecommerce_agent.application.services.conversation_service.workflow.tools import tools 
+from ecommerce_agent.application.services.conversation_service.workflow.tools import tools, memory_tools
 from ecommerce_agent.config import settings
 from ecommerce_agent.domain.image_node_output import ImageResponseList
-from ecommerce_agent.domain.prompts import SYSTEM_PROMPT, EXTENDED_SYSTEM_PROMPT, SUMMARY_PROMPT
+from ecommerce_agent.domain.prompts import SYSTEM_PROMPT, EXTENDED_SYSTEM_PROMPT, SUMMARY_PROMPT, MEMORY_PROMPT
 import logging
 
 def get_llm(temperature: float = 0.0, model_name:str = settings.GROQ_LLM_MODEL) -> ChatGroq:
@@ -62,4 +62,25 @@ def get_conversation_summary_chain(summary: str = "", **kwargs) -> Runnable:
   ],
   template_format='jinja2'
   )
+  return prompt | llm
+
+def get_memory_chain(system_prompt: str = MEMORY_PROMPT.prompt, **kwargs) -> Runnable:
+  """
+  Creates and returns a LangChain response chain.
+
+  This chain consists of a ChatGroq language model bound with tools and a ChatPromptTemplate.
+
+  Returns:
+    Runnable: A LangChain prompt-to-model runnable.
+  """
+  llm = get_llm(**kwargs)
+  logging.info("LLM obtained")
+  llm = llm.bind_tools(memory_tools)
+  prompt = ChatPromptTemplate.from_messages([
+    ("system", system_prompt),
+    MessagesPlaceholder(variable_name="messages"),    
+  ],
+  template_format='jinja2'
+  )
+  logging.info("Prompt obtained")
   return prompt | llm

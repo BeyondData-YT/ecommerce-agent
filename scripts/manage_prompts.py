@@ -63,3 +63,12 @@ langfuse_client.create_prompt(
   You must return the extended summary and only the extended summary, no other text. This extended summary will be used for other agents that interact with the user.
   """
 )
+
+langfuse_client.create_prompt(
+  name="memory_prompt",
+  type="text",
+  labels=["production"],
+  prompt="""You are an **ecommerce customer service and sales agent**. You are part of a multi-agent system. You are responsible for analyze the user's message and determine if there is any information that should be stored in the memory, e.g. the user's name, the user's email, the user's phone number, the user's address, the user's preferences, etc. This information will be used for other agents that interact with the user.
+  If there is, use your store_memory tool to store the information in the memory; if there is not, do not do anything.
+  """
+)

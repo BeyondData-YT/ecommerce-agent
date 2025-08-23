@@ -1,15 +1,15 @@
 from langchain_core.tools import BaseTool
 from langchain_core.tools.base import ArgsSchema
+from langchain_core.runnables import RunnableConfig
 from ecommerce_agent.application.services.rag.document_retriever import DocumentRetrieverService
 from ecommerce_agent.application.services.rag.product_retriever import ProductRetrieverService  
-from ecommerce_agent.application.services.memory import store_memory
+from ecommerce_agent.application.services.memory import MemoryService
 from ecommerce_agent.domain.retriever_input import TextRetrieverInput, ImageRetrieverInput
 from ecommerce_agent.domain.document import Document
 from ecommerce_agent.domain.product import Product
-from ecommerce_agent.domain.memory import MemoryInput
+from ecommerce_agent.domain.memory_input import MemoryInput
 import logging
 import asyncio
-from typing import Tuple
 
 class DocumentRetrieverTool(BaseTool):
   """
@@ -133,17 +133,18 @@ class MemoryTool(BaseTool):
   args_schema:ArgsSchema = MemoryInput
   return_direct:bool = True
   
-  def _run(self, memory: dict[str, str], namespace_for_memory: Tuple[str, str]) -> str:
+  def _run(self, memory: dict[str, str], config: RunnableConfig) -> str:
     """
     Stores memories in the database.
     """
-    return asyncio.run(self._arun(memory, namespace_for_memory))
+    return asyncio.run(self._arun(memory, config))
   
-  async def _arun(self, memory: dict[str, str], namespace_for_memory: Tuple[str, str]) -> str:
+  async def _arun(self, memory: dict[str, str], config: RunnableConfig) -> str:
     """
     Stores memories in the database.
     """
-    await store_memory(namespace_for_memory, memory)
+    await MemoryService().store_memory(memory, config)
     return "Memory stored successfully"
 
-tools = [DocumentRetrieverTool(), TextProductRetrieverTool(), ImageProductRetrieverTool(), MemoryTool()]
+tools = [DocumentRetrieverTool(), TextProductRetrieverTool(), ImageProductRetrieverTool()]
+memory_tools = [MemoryTool()]

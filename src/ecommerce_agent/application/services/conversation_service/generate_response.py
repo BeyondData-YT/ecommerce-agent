@@ -68,7 +68,8 @@ async def generate_response(
         },
         config={
           "configurable": {
-            "thread_id": thread_id
+            "thread_id": thread_id,
+            "user_id": user_id
           },
           "callbacks": [langfuse_handler],
           "metadata": {
@@ -121,7 +122,8 @@ async def get_streaming_response(
         },
         config={
           "configurable": {
-            "thread_id": thread_id
+            "thread_id": thread_id,
+            "user_id": user_id
           },
           "callbacks": [langfuse_handler],
           "metadata": {
