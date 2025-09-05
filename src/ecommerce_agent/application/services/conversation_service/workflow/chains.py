@@ -52,13 +52,20 @@ def get_response_chain(system_prompt: str = SYSTEM_PROMPT.prompt, with_structure
 
 def get_conversation_summary_chain(summary: str = "", **kwargs) -> Runnable:
   
-  summary_message = EXTENDED_SYSTEM_PROMPT.prompt if summary else SUMMARY_PROMPT.prompt
+  try:
+    summary_message = EXTENDED_SYSTEM_PROMPT.prompt if summary else SUMMARY_PROMPT.prompt
+    logging.info(f"Retrieved prompt from Langfuse: {summary_message[:100] if summary_message else 'EMPTY'}...")
+  except Exception as e:
+    logging.error(f"Error retrieving prompt from Langfuse: {e}")
+    summary_message = ""
+  
+  logging.info(f"Using summary prompt: {summary_message[:100]}...")
+  
   llm = get_llm(**kwargs)
   logging.info("LLM obtained")
-  llm = llm.bind_tools(tools)
   prompt = ChatPromptTemplate.from_messages([
     ("system", summary_message),
-    MessagesPlaceholder(variable_name="messages"),
+    # MessagesPlaceholder(variable_name="messages"),
   ],
   template_format='jinja2'
   )

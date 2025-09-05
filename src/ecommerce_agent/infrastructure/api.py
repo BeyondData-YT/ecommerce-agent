@@ -114,6 +114,7 @@ async def telegram_webhook(request: Request):
         return {"status": "ok"}
       
       thread_id = await session_service.get_or_create_session(user_id)
+      # thread_id = "9"
       logging.info(f"Thread ID: {thread_id} \n User ID: {user_id}")
 
       logging.info("Generating response...")
@@ -121,7 +122,8 @@ async def telegram_webhook(request: Request):
       agent_response_text = str(agent_response_obj)
       logging.info(f"Agent response text: {agent_response_text}")
       # Send the response back to Telegram
-      await bot_instance.send_message(chat_id=chat_id, text=agent_response_text)
+      if agent_response_text:
+        await bot_instance.send_message(chat_id=chat_id, text=agent_response_text)
       logging.info("Response sent to Telegram")
       return {"status": "ok"}
   
@@ -156,7 +158,8 @@ async def telegram_webhook(request: Request):
           logging.error(f"Error sending image response: {e}")
           return {"status": "error", "message": "Error sending image response"}
       
-    await bot_instance.send_message(chat_id=chat_id, text=str(agent_response_obj))
+    if agent_response_obj:
+      await bot_instance.send_message(chat_id=chat_id, text=str(agent_response_obj))
     logging.info("Response sent to Telegram")
     return {"status": "ok"}
     

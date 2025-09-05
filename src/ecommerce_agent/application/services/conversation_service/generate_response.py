@@ -77,7 +77,6 @@ async def generate_response(
             "langfuse_session_id": thread_id
           }
         }
-        
       )
       logging.info("Graph invoked")
       last_message = output_state["messages"][-1]

@@ -36,7 +36,8 @@ def create_graph_workflow() -> StateGraph:
       "__end__": "conversation_node"
     }
   )
-  graph.add_edge("memory_tools", "memory_node")
+  # graph.add_edge("memory_tools", "memory_node")
+  graph.add_edge("memory_tools", "conversation_node")
   graph.add_conditional_edges(
     "conversation_node",
     tools_condition,

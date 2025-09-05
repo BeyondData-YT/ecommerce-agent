@@ -54,7 +54,7 @@ class Settings(BaseSettings):
   ELEVENLABS_MODEL_ID: str
 
   # --- Summary Configuration ---
-  SUMMARY_MESSAGE_COUNT: int = 5
-  SUMMARY_MESSAGE_COUNT_TO_KEEP: int = 3
+  SUMMARY_MESSAGE_COUNT: int = 6
+  SUMMARY_MESSAGE_COUNT_TO_KEEP: int = 5
 
 settings = Settings()

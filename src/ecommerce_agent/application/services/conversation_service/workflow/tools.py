@@ -143,8 +143,13 @@ class MemoryTool(BaseTool):
     """
     Stores memories in the database.
     """
-    await MemoryService().store_memory(memory, config)
-    return "Memory stored successfully"
+    try:
+      await MemoryService().store_memory(memory, config)
+      return "Memory stored successfully"
+    except Exception as e:
+      logging.error(f"Error storing memory: {e}")
+      return f"Error storing memory: {e}"
+
 
 tools = [DocumentRetrieverTool(), TextProductRetrieverTool(), ImageProductRetrieverTool()]
 memory_tools = [MemoryTool()]

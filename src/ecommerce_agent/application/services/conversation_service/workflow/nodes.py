@@ -1,12 +1,13 @@
 from typing import Any
 import re
-import json
+from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import ToolNode
-from langchain_core.messages import ToolMessage, HumanMessage
+from langchain_core.messages import ToolMessage, HumanMessage, RemoveMessage, AIMessage
 from ecommerce_agent.application.services.conversation_service.workflow.chains import get_response_chain, get_conversation_summary_chain, get_memory_chain
 from ecommerce_agent.application.services.conversation_service.workflow.tools import tools, memory_tools
 from ecommerce_agent.application.services.conversation_service.workflow.state import ConversationState
 from ecommerce_agent.application.services.speech_service.text_to_speech import TextToSpeechService
+from ecommerce_agent.application.services.memory import MemoryService
 from ecommerce_agent.config import settings
 from ecommerce_agent.domain.prompts import IMAGE_PROMPT
 import logging
@@ -26,15 +27,21 @@ async def conversation_node(state: ConversationState) -> dict[str, Any]:
   """
   response_chain = get_response_chain()
   summary = state.get("summary", "")
+  memories = state.get("memories", [])
   logging.info("Response chain successfully obtained for conversation node.")
-  response = await response_chain.ainvoke(
+  try:
+    response = await response_chain.ainvoke(
     {
       "messages": state['messages'],
-      "summary": summary
+      "summary": summary,
+      "memories": memories
     }
-  )
-  logging.info("Response chain invoked for conversation node.")
-  return {"messages": response}
+    )
+    logging.info("Response chain invoked for conversation node.")
+    return {"messages": response}
+  except Exception as e:
+    logging.error(f"Error invoking response chain: {e}")
+    return {"messages": [AIMessage(content=f"Error: {e}")]}
 
 async def audio_node(state: ConversationState) -> dict[str, Any]:
     """
@@ -56,6 +63,7 @@ async def audio_node(state: ConversationState) -> dict[str, Any]:
     return {}
   
 async def image_node(state: ConversationState) -> dict[str, Any]:
+  memories = state.get("memories", [])
   for message in state['messages']:
     if isinstance(message, ToolMessage):
       if message.name == "image_product_retriever":
@@ -68,7 +76,8 @@ async def image_node(state: ConversationState) -> dict[str, Any]:
         logging.info("Response chain successfully obtained for image node.")
         response = await response_chain.ainvoke(
           {
-            "messages": [input_message]
+            "messages": [input_message],
+            "memories": memories
           }
         )
         logging.info("Response chain invoked for image node.")
@@ -159,28 +168,65 @@ def handle_mixed_input(input_str):
 
 async def summary_node(state: ConversationState) -> dict[str, Any]:
   summary = state.get("summary", "")
+  logging.info(f"Starting summary_node with current summary: '{summary}'")
+  logging.info(f"Number of messages to summarize: {len(state['messages'])}")
+  
   summary_chain = get_conversation_summary_chain(summary, model_name=settings.GROQ_LLM_MODEL_CONTEXT_SUMMARY)
   logging.info("Summary chain successfully obtained for summary node.")
-  summary = await summary_chain.ainvoke(
-    {
+  
+  try:
+    # Log the input being sent to the summary chain
+    input_data = {
       "messages": state['messages'],
       "summary": summary
     }
-  )
-  logging.info("Summary chain invoked for summary node.")
+    logging.info(f"Invoking summary chain with input: {input_data}")
+    
+    summary_response = await summary_chain.ainvoke(input_data)
+    logging.info(f"Summary chain response: {summary_response}")
+    logging.info(f"Summary response type: {type(summary_response)}")
+    
+    # Check if the response has content
+    if hasattr(summary_response, 'content'):
+      summary_content = summary_response.content
+      logging.info(f"Summary content: '{summary_content}'")
+      if not summary_content or summary_content.strip() == "":
+        logging.warning("Summary content is empty or whitespace only")
+        summary_content = "No summary generated"
+    else:
+      logging.warning(f"Summary response does not have 'content' attribute: {summary_response}")
+      summary_content = str(summary_response) if summary_response else "No summary generated"
+    
+  except Exception as e:
+    logging.error(f"Error invoking summary chain: {e}")
+    return {"messages": [AIMessage(content=f"Error: {e}")]}
+  
+  # Keep only the last N messages instead of using RemoveMessage
   messages_to_keep = state['messages'][-settings.SUMMARY_MESSAGE_COUNT_TO_KEEP:]
-  return {"summary": summary.content, "messages": messages_to_keep}
+  logging.info(f"Keeping {len(messages_to_keep)} messages out of {len(state['messages'])} total")
+  
+  result = {"summary": summary_content, "messages": messages_to_keep}
+  logging.info(f"Summary node returning: {result}")
+  return result
 
-async def memory_node(state: ConversationState) -> dict[str, Any]:
+async def memory_node(state: ConversationState, config: RunnableConfig) -> dict[str, Any]:
+  memory_service = MemoryService()
+  memories = await memory_service.get_memories(config)
+  logging.info(f"Memories obtained for memory node: {memories}")
   memory_chain = get_memory_chain()
   logging.info("Memory chain successfully obtained for memory node.")
-  response = await memory_chain.ainvoke(
-    {
-      "messages": state['messages']
-    }
-  )
-  logging.info("Memory chain invoked for memory node.")
-  return {"messages": response}
+  try:
+    response = await memory_chain.ainvoke(
+      {
+        "messages": state['messages'],
+        "memories": memories
+      }
+    )
+    logging.info("Memory chain invoked for memory node.")
+    return {"messages": response, "memories": memories}
+  except Exception as e:
+    logging.error(f"Error invoking memory chain: {e}")
+    return {"messages": [AIMessage(content=f"Error: {e}")]}
 
 async def connector_node(state: ConversationState):
   return {}
