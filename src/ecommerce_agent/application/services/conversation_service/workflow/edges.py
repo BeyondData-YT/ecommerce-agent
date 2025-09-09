@@ -23,3 +23,10 @@ def should_summarize(state: ConversationState) -> Literal["summary_node", "__end
         return "summary_node"
     else:
         return "__end__"
+    
+def should_continue(state: ConversationState) -> Literal["conversation_node", "__end__"]:
+    last_message = state['messages'][-1]
+    if last_message.type == "system" and last_message.content.startswith("Text was not valid"):
+        return "__end__"
+    else:
+        return "memory_node"

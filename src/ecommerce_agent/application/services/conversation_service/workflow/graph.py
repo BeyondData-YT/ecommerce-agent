@@ -1,5 +1,5 @@
-from ecommerce_agent.application.services.conversation_service.workflow.nodes import conversation_node, tools_node, audio_node, connector_node, image_node, summary_node, memory_node, memory_tools_node
-from ecommerce_agent.application.services.conversation_service.workflow.edges import select_workflow, should_summarize
+from ecommerce_agent.application.services.conversation_service.workflow.nodes import conversation_node, tools_node, audio_node, connector_node, image_node, summary_node, memory_node, memory_tools_node, input_guardrail_node, output_guardrail_node
+from ecommerce_agent.application.services.conversation_service.workflow.edges import select_workflow, should_summarize, should_continue
 from ecommerce_agent.application.services.conversation_service.workflow.state import ConversationState
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import tools_condition
@@ -26,8 +26,19 @@ def create_graph_workflow() -> StateGraph:
   graph.add_node("image_node", image_node)
   graph.add_node("connector_node", connector_node)
   graph.add_node("summary_node", summary_node)
+  graph.add_node("input_guardrail_node", input_guardrail_node)
+  graph.add_node("output_guardrail_node", output_guardrail_node)
   
-  graph.add_edge(START, "memory_node")
+  
+  graph.add_edge(START, "input_guardrail_node")
+  graph.add_conditional_edges(
+    "input_guardrail_node",
+    should_continue,
+    {
+      "memory_node": "memory_node",
+      "__end__": "__end__"
+    }
+  )
   graph.add_conditional_edges(
     "memory_node",
     tools_condition,
@@ -36,7 +47,6 @@ def create_graph_workflow() -> StateGraph:
       "__end__": "conversation_node"
     }
   )
-  # graph.add_edge("memory_tools", "memory_node")
   graph.add_edge("memory_tools", "conversation_node")
   graph.add_conditional_edges(
     "conversation_node",
@@ -49,16 +59,31 @@ def create_graph_workflow() -> StateGraph:
   graph.add_edge("tools", "conversation_node")
   graph.add_conditional_edges(
     "connector_node",
-    select_workflow
+    select_workflow,
+    {
+      "audio_node": "audio_node",
+      "image_node": "image_node",
+      "summary_node": "summary_node",
+      "__end__": "output_guardrail_node"
+    }
   )
   graph.add_conditional_edges(
     "audio_node",
-    should_summarize
+    should_summarize,
+    {
+      "audio_node": "audio_node",
+      "__end__": "output_guardrail_node"
+    }
   )
   graph.add_conditional_edges(
     "image_node",
-    should_summarize
+    should_summarize,
+    {
+      "image_node": "image_node",
+      "__end__": "output_guardrail_node"
+    }
   )
-  graph.add_edge("summary_node", END)
+  graph.add_edge("summary_node", "output_guardrail_node")
+  graph.add_edge("output_guardrail_node", END)
   logging.info("Graph workflow created successfully.")
   return graph

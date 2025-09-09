@@ -2,7 +2,7 @@ from typing import Any
 import re
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import ToolNode
-from langchain_core.messages import ToolMessage, HumanMessage, RemoveMessage, AIMessage
+from langchain_core.messages import ToolMessage, HumanMessage, AIMessage, SystemMessage
 from ecommerce_agent.application.services.conversation_service.workflow.chains import get_response_chain, get_conversation_summary_chain, get_memory_chain
 from ecommerce_agent.application.services.conversation_service.workflow.tools import tools, memory_tools
 from ecommerce_agent.application.services.conversation_service.workflow.state import ConversationState
@@ -10,6 +10,8 @@ from ecommerce_agent.application.services.speech_service.text_to_speech import T
 from ecommerce_agent.application.services.memory import MemoryService
 from ecommerce_agent.config import settings
 from ecommerce_agent.domain.prompts import IMAGE_PROMPT
+from ecommerce_agent.application.services.guardrails.input_guardrail import InputGuardrail
+from ecommerce_agent.application.services.guardrails.output_guardrails import OutputGuardrail
 import logging
 
 tools_node = ToolNode(tools)
@@ -168,28 +170,20 @@ def handle_mixed_input(input_str):
 
 async def summary_node(state: ConversationState) -> dict[str, Any]:
   summary = state.get("summary", "")
-  logging.info(f"Starting summary_node with current summary: '{summary}'")
   logging.info(f"Number of messages to summarize: {len(state['messages'])}")
   
   summary_chain = get_conversation_summary_chain(summary, model_name=settings.GROQ_LLM_MODEL_CONTEXT_SUMMARY)
   logging.info("Summary chain successfully obtained for summary node.")
   
   try:
-    # Log the input being sent to the summary chain
     input_data = {
       "messages": state['messages'],
       "summary": summary
-    }
-    logging.info(f"Invoking summary chain with input: {input_data}")
-    
+    }    
     summary_response = await summary_chain.ainvoke(input_data)
-    logging.info(f"Summary chain response: {summary_response}")
-    logging.info(f"Summary response type: {type(summary_response)}")
     
-    # Check if the response has content
     if hasattr(summary_response, 'content'):
       summary_content = summary_response.content
-      logging.info(f"Summary content: '{summary_content}'")
       if not summary_content or summary_content.strip() == "":
         logging.warning("Summary content is empty or whitespace only")
         summary_content = "No summary generated"
@@ -201,12 +195,10 @@ async def summary_node(state: ConversationState) -> dict[str, Any]:
     logging.error(f"Error invoking summary chain: {e}")
     return {"messages": [AIMessage(content=f"Error: {e}")]}
   
-  # Keep only the last N messages instead of using RemoveMessage
   messages_to_keep = state['messages'][-settings.SUMMARY_MESSAGE_COUNT_TO_KEEP:]
   logging.info(f"Keeping {len(messages_to_keep)} messages out of {len(state['messages'])} total")
   
   result = {"summary": summary_content, "messages": messages_to_keep}
-  logging.info(f"Summary node returning: {result}")
   return result
 
 async def memory_node(state: ConversationState, config: RunnableConfig) -> dict[str, Any]:
@@ -226,6 +218,30 @@ async def memory_node(state: ConversationState, config: RunnableConfig) -> dict[
     return {"messages": response, "memories": memories}
   except Exception as e:
     logging.error(f"Error invoking memory chain: {e}")
+    return {"messages": [AIMessage(content=f"Error: {e}")]}
+
+async def input_guardrail_node(state: ConversationState) -> dict[str, Any]:
+  input_guardrail = InputGuardrail()
+  logging.info("Input guardrail successfully obtained for input guardrail node.")
+  last_message = state['messages'][-1].content
+  try:
+    return {"messages": input_guardrail.validate_input(last_message), "prompt": last_message}
+  except ValueError as e:
+    logging.error(f"Error validating input: {e}")
+    return {"messages" : [SystemMessage(content=f"Text was not valid")]}
+  except Exception as e:
+    logging.error(f"Error invoking input guardrail: {e}")
+    return {"messages": [AIMessage(content=f"Error: {e}")], "prompt": last_message}
+
+async def output_guardrail_node(state: ConversationState) -> dict[str, Any]:
+  output_guardrail = OutputGuardrail()
+  logging.info("Output guardrail successfully obtained for output guardrail node.")
+  prompt = state.get("prompt", "")
+  last_message = state['messages'][-1].content
+  try:
+    return {"messages": output_guardrail.validate_output(prompt, last_message)}
+  except Exception as e:
+    logging.error(f"Error validating output: {e}")
     return {"messages": [AIMessage(content=f"Error: {e}")]}
 
 async def connector_node(state: ConversationState):
